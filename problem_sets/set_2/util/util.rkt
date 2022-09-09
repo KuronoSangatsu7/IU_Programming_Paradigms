@@ -11,13 +11,13 @@
 
 (count-ones '(1 0 0 0 1 1 0 1 0 1))
 
-; A function that returns the number of trailing zeroes in a binary number given as a list of binary digits
+; A function that checks whether the given value is zero
 (define (is-zero val)
   (cond
     [(= val 0) 1]
     [else 0]))
 
-
+; A function that returns the number of trailing zeroes in a binary number given as a list of binary digits
 (define (count-trailing-zeros bits)
   (define (helper bits current)
   (cond
@@ -27,6 +27,29 @@
     (helper (reverse bits) 0))
 
 (count-trailing-zeros '(1 0 0 1 1 0 1 0 0 0))
+
+; A function that returns the number of leading zeroes in a binary number given as a list of binary digits
+(define (count-leading-zeros bits)
+  (define (helper bits current)
+  (cond
+    [(= (first bits) 1) current]
+    [else (helper (rest bits)
+                  (+ current (is-zero (first bits))))]))
+    (helper bits 0))
+
+(count-leading-zeros '(0 0 1 1 0 1 0 0 0))
+
+; A function that strips a binary number given as a list of binary digits of its leading zeros
+(define (remove-leading-zeros bits)
+  (define (helper bits n)
+    (cond
+      [(= n 0) bits]
+      [else (helper (rest bits) (- n 1))]))
+  (helper bits (count-leading-zeros bits)))
+
+(remove-leading-zeros '(0 0 1 0 1 0 1 1 0))
+
+
 
 ; A function that increments a binary number given as a list of binary digits
 (define (increment bits)
