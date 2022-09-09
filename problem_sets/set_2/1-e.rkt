@@ -35,6 +35,8 @@
       [else (helper (rest bits) (- n 1))]))
   (helper bits (count-leading-zeros bits)))
 
+; Algorithm: To subtract 1 from a number (1 0 1 1 0 0) all we need to do is flip all the bits after the rightmost 1 bit
+; to get (1 0 1 1 1 1) and then flip our previously rightmost 1 bit as well (1 0 1 0 1 1) then remove any leading zeros.
 (define (decrement bits)
   (cond
     [(empty? (rest bits)) (list 0)]
