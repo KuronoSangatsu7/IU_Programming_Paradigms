@@ -25,6 +25,15 @@
 
 (is-one 1)
 
+; A function that checks the parity of a number given as a list of binary digits (returns true if the given number is odd and false otherwise)
+(define (binary-odd bits)
+  (define (helper bits)
+    (is-one (first bits)))
+  (helper (reverse bits)))
+
+(binary-odd '(1 0 1 1 0))
+(binary-odd '(1 0 1 1 1))
+
 ; A function that returns the number of trailing zeroes in a binary number given as a list of binary digits
 (define (count-trailing-zeros bits)
   (define (helper bits current)
