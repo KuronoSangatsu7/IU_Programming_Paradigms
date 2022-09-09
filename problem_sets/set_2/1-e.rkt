@@ -19,7 +19,7 @@
       [(= n 0) (reverse bits)]
       [else (helper (rest bits) (- n 1))]))
   (helper (reverse bits) (count-trailing-zeros bits)))
-; A function that returns the number of leading zeroes in a binary number given as a list of binary digits
+
 (define (count-leading-zeros bits)
   (define (helper bits current)
   (cond
@@ -28,7 +28,6 @@
                   (+ current (is-zero (first bits))))]))
     (helper bits 0))
 
-; A function that strips a binary number given as a list of binary digits of its leading zeros
 (define (remove-leading-zeros bits)
   (define (helper bits n)
     (cond
@@ -53,3 +52,32 @@
 (decrement '(1 0 1 1 0))
 (decrement '(1 0 0 0 0))
 (decrement '(0))
+
+; That was one way to do decrement. After writing all that I realized that I could have just converted it 
+; to decimal then done the operation then converted back to binary. It was good practice nontheless :)
+
+(define (decimal-to-binary n)
+  (define (helper current-list n)
+    (cond
+      [(< n 2) (reverse (append current-list (list n)))]
+      [else (helper (append current-list (list (remainder n 2))) (quotient n 2))])
+    )
+  (helper empty n))
+
+(define (binary-to-decimal bits)
+  (define (helper bits res pow)
+    (cond
+      [(empty? bits) res]
+      [else (helper (rest bits) (+ res (* (first bits) (expt 2 pow))) (+ 1 pow))]))
+  (helper (reverse bits) 0 0))
+
+(define (easy-decrement bits)
+  (cond
+    [(= (binary-to-decimal bits) 0) (list 0)]
+    [(= (binary-to-decimal bits) 1) (list 0)]
+    [else (decimal-to-binary (- (binary-to-decimal bits) 1))])
+  )
+
+(easy-decrement '(1 0 1 1 0))
+(easy-decrement '(1 0 0 0 0))
+(easy-decrement '(0))

@@ -113,6 +113,16 @@
 
 (decrement '(1 0 1 1 0))
 
+; A more concise and efficient version of the original decrement function
+(define (easy-decrement bits)
+  (cond
+    [(= (binary-to-decimal bits) 0) (list 0)]
+    [(= (binary-to-decimal bits) 1) (list 0)]
+    [else (decimal-to-binary (- (binary-to-decimal bits) 1))])
+  )
+
+(easy-decrement '(1 0 1 1 0))
+
 ; A function that converts a given decimal number to a list of binary digits
 (define (decimal-to-binary n)
   (define (helper current-list n)
