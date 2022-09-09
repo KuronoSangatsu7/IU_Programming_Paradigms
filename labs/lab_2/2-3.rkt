@@ -1,0 +1,14 @@
+#lang slideshow
+(define (is-one val)
+  (cond
+    [(= val 0) 0]
+    [else 1]))
+
+(define (count-ones bits)
+  (cond
+    [(empty? bits) 0]
+    [else (+ (is-one (first bits))
+             (count-ones (rest bits))
+             )]))
+
+(count-ones '(1 0 0 0 1 1 0 1 0 1))
