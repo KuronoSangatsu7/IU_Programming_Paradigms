@@ -11,11 +11,19 @@
 
 (count-ones '(1 0 0 0 1 1 0 1 0 1))
 
-; A function that checks whether the given value is zero
+; A function that checks whether the given value is zero (returns 1 if the given value is 0 and 0 otherwise)
 (define (is-zero val)
   (cond
     [(= val 0) 1]
     [else 0]))
+
+; A function that checks whether the given value is one (returns true if the given value is 1 and false otherwise)
+(define (is-one val)
+  (cond
+    [(= val 1) #t]
+    [else #f]))
+
+(is-one 1)
 
 ; A function that returns the number of trailing zeroes in a binary number given as a list of binary digits
 (define (count-trailing-zeros bits)
