@@ -45,6 +45,15 @@
 
 (count-trailing-zeros '(1 0 0 1 1 0 1 0 0 0))
 
+; A function that strips a binary number given as a list of binary digits of its trailing zeros
+(define (remove-trailing-zeros bits)
+  (define (helper bits n)
+    (cond
+      [(= n 0) (reverse bits)]
+      [else (helper (rest bits) (- n 1))]))
+  (helper (reverse bits) (count-trailing-zeros bits)))
+(remove-trailing-zeros '(0 1 0 0 1 0 0))
+
 ; A function that returns the number of leading zeroes in a binary number given as a list of binary digits
 (define (count-leading-zeros bits)
   (define (helper bits current)
@@ -67,8 +76,7 @@
 (remove-leading-zeros '(0 0 1 0 1 0 1 1 0))
 
 
-
-; A function that increments a binary number given as a list of binary digits
+; A function that increments a binary number given as a list of binary digits by 1
 (define (increment bits)
   (define (helper bits has-one current)
   (cond
@@ -87,6 +95,23 @@
     (helper (reverse bits) 1 empty))
 
 (increment '(1 0 1 1 1 0 1 1))
+
+; A function that decrements a binary number given as a list of binary digits by 1
+(define (decrement bits)
+  (cond
+    [(empty? (rest bits)) (list 0)]
+    [else 
+    (define (helper num-trailing-zeros bits)
+      (define (add-ones-helper bits n)
+        (cond
+          [(= n 0) (reverse bits)]
+          [else (add-ones-helper (append (list 1) bits) (- n 1))]))
+      (add-ones-helper (append (list 0) (rest bits)) num-trailing-zeros)
+      )
+    (remove-leading-zeros (helper (count-trailing-zeros bits) (reverse (remove-trailing-zeros bits))))]
+  ))
+
+(decrement '(1 0 1 1 0))
 
 ; A function that converts a given decimal number to a list of binary digits
 (define (decimal-to-binary n)
