@@ -56,7 +56,8 @@
 (decrement '(0))
 
 ; That was one way to do decrement. After writing all that I realized that I could have just converted it 
-; to decimal then done the operation then converted back to binary. It was good practice nontheless :)
+; to decimal then done the operation then converted back to binary since I implemented the functions for conversion previously
+; It was good practice nontheless :)
 
 (define (decimal-to-binary n)
   (define (helper current-list n)
