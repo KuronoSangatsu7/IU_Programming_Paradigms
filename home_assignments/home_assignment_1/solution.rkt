@@ -1,9 +1,6 @@
 #lang slideshow
-;Testing random stuff
-(define (pp expr)
-  (cadr expr)
-(pp '(* (+ 1 (* 2 x)) (+ x y))))
 
+;1.1
 ;Takes a datum of length one and decides if it's a variable or not
 (define (variable? expr)
   (cond
@@ -57,3 +54,33 @@
   (caddr expr))
 (multiplier-2 '(* 1 2))
 (multiplier-2 '(* 5 6 7 8))
+
+;1.2
+;Derives a variable with respect to a given variable
+(define (derive-var var respect-to)
+  (cond
+    [(equal? var respect-to)
+     1]
+    [else
+     0]))
+(derive-var 'x 'x)
+
+(define (derivative expr var)
+  (cond
+    [(empty? expr)
+     empty]
+    [(list? expr)
+     (cond
+       [(sum? expr)
+        (list '+ (derivative (summand-1 expr) var) (derivative (summand-2 expr) var))]
+       [(product? expr)
+        (list '+ (list '* (derivative (multiplier-1 expr) var) (multiplier-2 expr)) (list '* (multiplier-1 expr) (derivative (multiplier-2 expr) var)))])]
+    [else
+     (cond
+       [(variable? expr)
+        (derive-var expr var)]
+       [else
+        0])]))
+(derivative '(+ 1 x) 'x)
+(derivative '(* 2 y) 'y)
+(derivative '(* (+ x y) (+ x (+ x x))) 'x)
