@@ -66,11 +66,8 @@
 (derive-var 'x 'x)
 
 ;Derives an expression with respect to a given variable
-;TODO: Consider deleting the first condition (empty?)
 (define (derivative expr var)
   (cond
-    [(empty? expr)
-     empty]
     [(list? expr)
      (cond
        [(sum? expr)
