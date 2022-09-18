@@ -1,5 +1,4 @@
 #lang slideshow
-
 ;1.1
 ;Takes a datum of length one and decides if it's a variable or not
 (define (variable? expr)
@@ -486,3 +485,117 @@
 
 (pretty-print '((derivative-extended '(+ x (log x)) 'x)))
 (derivative-extended '(+ x (log x)) 'x)
+
+
+;Computes the exponentiation of a given expression at the top level
+(define (compute-exp expr)
+  (cond
+    [(and
+      (not (list? (caddr expr)))
+      (equal? (caddr expr) 0))
+     1]
+    [(and
+      (not (list? (caddr expr)))
+      (equal? (caddr expr) 1))
+     (cadr expr)]
+    [else
+     expr]))
+
+(pretty-print '(compute-exp '(^ (* y z) 0)))
+(compute-exp '(^ (* y z) 0))
+
+(pretty-print '(compute-exp '(^ (* y z) 1)))
+(compute-exp '(^ (* y z) 1))
+
+;Functions to compute the numeric value of trigonometric functions and natural logarithm when applied to constants at the top level
+(define (compute-sin expr)
+  (cond
+    [(and
+      (not (list? (cadr expr)))
+      (number? (cadr expr)))
+     (sin (cadr expr))]
+    [else
+     expr]))
+
+(define (compute-cos expr)
+  (cond
+    [(and
+      (not (list? (cadr expr)))
+      (number? (cadr expr)))
+     (cos (cadr expr))]
+    [else
+     expr]))
+
+(define (compute-tan expr)
+  (cond
+    [(and
+      (not (list? (cadr expr)))
+      (number? (cadr expr)))
+     (tan (cadr expr))]
+    [else
+     expr]))
+
+(define (compute-log expr)
+  (cond
+    [(and
+      (not (list? (cadr expr)))
+      (number? (cadr expr)))
+     (log (cadr expr))]
+    [else
+     expr]))
+
+;Testing
+(pretty-print '((compute-sin '(sin 60))))
+(compute-sin '(sin 60))
+
+(pretty-print '((compute-cos '(cos 60))))
+(compute-cos '(cos 60))
+
+(pretty-print '((compute-tan '(tan 60))))
+(compute-tan '(tan 60))
+
+(pretty-print '((compute-log '(log 1))))
+(compute-log '(log 1))
+
+;Computes the sum/product/exponentiation/trignometric function/natural logarithm of a given expression at the top level. To be called recursively by the simplify function
+(define (compute-at-root-extended expr)
+  (cond
+    [(sum? expr)
+     (compute-sum expr)]
+    [(product? expr)
+     (compute-prod expr)]
+    [(exponent? expr)
+     (compute-exp expr)]
+    [(sin? expr)
+     (compute-sin expr)]
+    [(cos? expr)
+     (compute-cos expr)]
+    [(tan? expr)
+     (compute-tan expr)]
+    [(log? expr)
+     (compute-log expr)]))
+
+;Simplifies a given expression according to the given rules
+(define (simplify-extended expr)
+  (cond
+    [(not (list? expr))
+     expr]
+    [else
+     (compute-at-root-extended (append (list (car expr)) (map (lambda (expr-1) (simplify-extended expr-1)) (rest expr))))]))
+(simplify-extended '(+ x y))
+(simplify-extended '(+ ((((x + y) ^ 1) + 0) * 1) (- (log 1) (cos 55))))
+;(map (lambda (expr-1) (simplify-extended expr-1)) (rest expr))
+
+; This works: (map (lambda (num) (number? num)) '(1 4 x y z 5 7)) hmmmmmm
+
+;A utility function which transforms an expression given in infix notation to prefix notation
+(define (to-prefix expr)
+  (cond
+    [(not (list? expr))
+     expr]
+    [(equal? (length expr) 2)
+     expr]
+    [else
+     (swap (list (car expr) (to-prefix (cadr expr)) (to-prefix (caddr expr))))]))
+
+(to-prefix '(((((x + y) ^ 1) + 0) * 1) + ((log 1) - (cos 55))))
