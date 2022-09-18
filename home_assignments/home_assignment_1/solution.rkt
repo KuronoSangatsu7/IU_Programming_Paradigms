@@ -8,7 +8,12 @@
          (number? expr))
      #f]
     [else #t]))
+
+;Testing
+(pretty-print '((variable? 1)))
 (variable? 1)
+
+(pretty-print '((variable? 'x)))
 (variable? 'x)
 
 ;Takes an expression and decides if it's a sum or not
@@ -18,7 +23,12 @@
           (equal? (car expr) '+))
      #t]
     [else #f]))
+
+;Testing
+(pretty-print '((sum? '(+ 1 2))))
 (sum? '(+ 1 2))
+
+(pretty-print '((sum? '(* 1 2))))
 (sum? '(* 1 2))
 
 ;Takes an expression and decides if it's a multiplication or not
@@ -28,31 +38,56 @@
           (equal? (car expr) '*))
      #t]
     [else #f]))
+
+;Testing
+(pretty-print '((product? '(+ 1 2))))
 (product? '(+ 1 2))
+
+(pretty-print '(product? '(* 1 2)))
 (product? '(* 1 2))
 
 ;Takes a sum and returns the first summand
 (define (summand-1 expr)
   (cadr expr))
+
+;Testing
+(pretty-print '(summand-1 '(+ 1 2)))
 (summand-1 '(+ 1 2))
+
+(pretty-print '(summand-1 '(+ 5 6 7 8)))
 (summand-1 '(+ 5 6 7 8))
 
 ;Takes a sum and returns the second summand
 (define (summand-2 expr)
   (caddr expr))
+
+;Testing
+(pretty-print '((summand-2 '(+ 1 2))))
 (summand-2 '(+ 1 2))
+
+(pretty-print '((summand-2 '(+ 5 6 7 8))))
 (summand-2 '(+ 5 6 7 8))
 
 ;Takes a multiplication and returns the first multiplier
 (define (multiplier-1 expr)
   (cadr expr))
+
+;Testing
+(pretty-print '((multiplier-1 '(* 1 2))))
 (multiplier-1 '(* 1 2))
+
+(pretty-print '((multiplier-1 '(* 5 6 7 8))))
 (multiplier-1 '(* 5 6 7 8))
 
 ;Takes a multiplication and returns the second multiplier
 (define (multiplier-2 expr)
   (caddr expr))
+
+;Testing
+(pretty-print '((multiplier-2 '(* 1 2))))
 (multiplier-2 '(* 1 2))
+
+(pretty-print '((multiplier-2 '(* 5 6 7 8))))
 (multiplier-2 '(* 5 6 7 8))
 
 ;1.2
@@ -63,6 +98,9 @@
      1]
     [else
      0]))
+
+;Testing
+(pretty-print '((derive-var 'x 'x)))
 (derive-var 'x 'x)
 
 ;Derives an expression with respect to a given variable
@@ -80,8 +118,15 @@
         (derive-var expr var)]
        [else
         0])]))
+
+;Testing
+(pretty-print '((derivative '(+ 1 x) 'x)))
 (derivative '(+ 1 x) 'x)
+
+(pretty-print '((derivative '(* 2 y) 'y)))
 (derivative '(* 2 y) 'y)
+
+(pretty-print '((derivative '(* (+ x y) (+ x (+ x x))) 'x)))
 (derivative '(* (+ x y) (+ x (+ x x))) 'x)
 
 ;1.3
@@ -104,9 +149,18 @@
            (cadr expr)])]
        [else
         expr])]))
+
+;Testing
+(pretty-print '((compute-sum '(+ 1 2))))
 (compute-sum '(+ 1 2))
+
+(pretty-print '((compute-sum '(+ x 0))))
 (compute-sum '(+ x 0))
+
+(pretty-print '((compute-sum '(+ 0 x))))
 (compute-sum '(+ 0 x))
+
+(pretty-print '((compute-sum '(+ (+ x (+ y 1)) 0))))
 (compute-sum '(+ (+ x (+ y 1)) 0))
 
 ;Computes the product of a given expression at the top level according to the specified rules.
@@ -134,11 +188,24 @@
               (cadr expr)])]
           [else
            expr])])]))
+
+;Testing
+(pretty-print '((compute-prod '(* x 1))))
 (compute-prod '(* x 1))
+
+(pretty-print '((compute-prod '(* 1 x))))
 (compute-prod '(* 1 x))
+
+(pretty-print '((compute-prod '(* 3 3))))
 (compute-prod '(* 3 3))
+
+(pretty-print '((compute-prod '(* 0 x))))
 (compute-prod '(* 0 x))
+
+(pretty-print '((compute-prod '(* (+ x y) 0))))
 (compute-prod '(* (+ x y) 0))
+
+(pretty-print '((compute-prod '(* 1 (+ x y)))))
 (compute-prod '(* 1 (+ x y)))
 
 ;Computes the sum or product of a given expression at the top level according to the specified rules. To be called recursively by the simplify function
@@ -149,16 +216,37 @@
     [(product? expr)
      (compute-prod expr)]))
 
+;Testing
+(pretty-print '((compute-at-root '(+ 1 2))))
 (compute-at-root '(+ 1 2))
+
+(pretty-print '((compute-at-root '(+ x 0))))
 (compute-at-root '(+ x 0))
+
+(pretty-print '((compute-at-root '(+ 0 x))))
 (compute-at-root '(+ 0 x))
+
+(pretty-print '((compute-at-root '(+ (+ x (+ y 1)) 0))))
 (compute-at-root '(+ (+ x (+ y 1)) 0))
+
+(pretty-print '((compute-at-root '(* x 1))))
 (compute-at-root '(* x 1))
+
+(pretty-print '((compute-at-root '(* 1 x))))
 (compute-at-root '(* 1 x))
+
+(pretty-print '((compute-at-root '(* 3 3))))
 (compute-at-root '(* 3 3))
+
+(pretty-print '((compute-at-root '(* 0 x))))
 (compute-at-root '(* 0 x))
+
+(pretty-print '((compute-at-root '(* (+ x y) 0))))
 (compute-at-root '(* (+ x y) 0))
+
+(pretty-print '((compute-at-root '(* 1 (+ x y)))))
 (compute-at-root '(* 1 (+ x y)))
+
 
 ;Simplifies a given expression according to the given rules
 (define (simplify expr)
@@ -168,13 +256,25 @@
     [else
      (compute-at-root (list (car expr) (simplify (cadr expr)) (simplify (caddr expr))))]))
 
+;Testing
+(pretty-print '((simplify '(+ 0 1))))
 (simplify '(+ 0 1))
+
+(pretty-print '((simplify '(+ (* 0 y) (* 2 1)))))
 (simplify '(+ (* 0 y) (* 2 1)))
+
+(pretty-print '((simplify '(+ (* x y) (* 2 1)))))
+(simplify '(+ (* x y) (* 2 1)))
+
+(pretty-print '((simplify '(+ (* (+ 1 0) (+ x (+ x x))) (* (+ x y) (+ 1 (+ 1 1)))))))
 (simplify '(+ (* (+ 1 0) (+ x (+ x x))) (* (+ x y) (+ 1 (+ 1 1)))))
 
 ;Swaps the first and second elements of a list
 (define (swap expr)
   (append (list (cadr expr) (car expr)) (cddr expr)))
+
+;Testing
+(pretty-print '((swap '(1 2 3 4 5))))
 (swap '(1 2 3 4 5))
 
 ;Converts a given expression to infix form
@@ -185,4 +285,204 @@
     [else
      (swap (list (car expr) (to-infix (cadr expr)) (to-infix (caddr expr))))]))
 
+;Testing
+(pretty-print '((to-infix '(+ (+ x (+ x x)) (* (+ x y) 3)))))
 (to-infix '(+ (+ x (+ x x)) (* (+ x y) 3)))
+
+;1.6
+;Takes an expression and decides if it's an exponentiation or not
+(define (exponent? expr)
+  (cond
+    [(and (list? expr)
+          (equal? (car expr) '^))
+     #t]
+    [else #f]))
+
+;Testing
+(pretty-print '((exponent? '(+ 1 2))))
+(exponent? '(+ 1 2))
+
+(pretty-print '((exponent? '(^ 1 2))))
+(exponent? '(^ 1 2))
+
+;Takes an expression and decides if it's a sine or not
+(define (sin? expr)
+  (cond
+    [(and (list? expr)
+          (= (length expr) 2)
+          (equal? (car expr) 'sin))
+     #t]
+    [else #f]))
+
+;Testing
+(pretty-print '((sin? '(+ 1 2))))
+(sin? '(+ 1 2))
+
+(pretty-print '((sin? '(sin 1))))
+(sin? '(sin 1))
+
+;Takes an expression and decides if it's a cosine or not
+(define (cos? expr)
+  (cond
+    [(and (list? expr)
+          (= (length expr) 2)
+          (equal? (car expr) 'cos))
+     #t]
+    [else #f]))
+
+;Testing
+(pretty-print '((cos? '(^ 1 2))))
+(cos? '(^ 1 2))
+
+(pretty-print '((cos? '(cos 1))))
+(cos? '(cos 1))
+
+;Takes an expression and decides if it's a tangent or not
+(define (tan? expr)
+  (cond
+    [(and (list? expr)
+          (= (length expr) 2)
+          (equal? (car expr) 'tan))
+     #t]
+    [else #f]))
+
+;Testing
+(pretty-print '((tan? '(* 1 2))))
+(tan? '(* 1 2))
+
+(pretty-print '((tan? '(tan 1))))
+(tan? '(tan 1))
+
+;Takes an expression and decides if it's a natural logarithm or not
+(define (log? expr)
+  (cond
+    [(and (list? expr)
+          (= (length expr) 2)
+          (equal? (car expr) 'log))
+     #t]
+    [else #f]))
+
+;Testing
+(pretty-print '((log? '(* 1 2))))
+(log? '(* 1 2))
+
+(pretty-print '((log? '(log 1))))
+(log? '(log 1))
+
+;Checks whether a given expression is part of the given expression(s) or not
+(define (is-member? expr expressions)
+  (cond
+    [(list? expressions)
+     (ormap
+      (lambda (e)
+        (equal? e expr))
+      expressions)]
+    [else
+     (equal? expr expressions)]))
+
+;Testing
+(pretty-print '((is-member? 'x '(x y z))))
+(is-member? 'x '(x y z))
+
+(pretty-print '((is-member? 'f '(x y z))))
+(is-member? 'f '(x y z))
+
+(pretty-print '((is-member? 'f 'f)))
+(is-member? 'f 'f)
+
+
+;Derives an exponentiation with respect to a given variable
+(define (derive-exponent expr respect-to)
+  (cond
+    [(is-member? respect-to (cadr expr))
+     (list '* (caddr expr) (list '^ (cadr expr) (list '+ (caddr expr) -1)))]
+    [(is-member? respect-to (caddr expr))
+     (list '* expr (list 'log (cadr expr)))]
+    [else
+     0]))
+
+;Derives a sine with respect to a given variable
+(define (derive-sine expr var)
+  (cond
+    [(is-member? var (cadr expr))
+     (list 'cos (cadr expr))]
+    [else
+     0]))
+
+;Derives a cosine with respect to a given variable
+(define (derive-cosine expr var)
+  (cond
+    [(is-member? var (cadr expr))
+     (list '* -1 (list 'sin (cadr expr)))]
+    [else
+     0]))
+
+;Derives a tangent with respect to a given variable
+(define (derive-tangent expr var)
+  (cond
+    [(is-member? var (cadr expr))
+     (list '^ (list '^ (list 'cos (cadr expr)) 2) -1)]
+    [else
+     0]))
+
+;Derives a natural logarithm with respect to a given variable
+(define (derive-log expr var)
+  (cond
+    [(is-member? var (cadr expr))
+    (list '^ (cadr expr) -1)]
+    [else
+     0]))
+
+;Derives an expression with respect to a given variable
+(define (derivative-extended expr var)
+  (cond
+    [(list? expr)
+     (cond
+       [(sum? expr)
+        (list '+ (derivative-extended (summand-1 expr) var) (derivative-extended (summand-2 expr) var))]
+       [(product? expr)
+        (list '+ (list '* (derivative-extended (multiplier-1 expr) var) (multiplier-2 expr)) (list '* (multiplier-1 expr) (derivative-extended (multiplier-2 expr) var)))]
+       [(exponent? expr)
+        (derive-exponent expr var)]
+       [(sin? expr)
+        (derive-sine expr var)]
+       [(cos? expr)
+        (derive-cosine expr var)]
+       [(tan? expr)
+        (derive-tangent expr var)]
+       [(log? expr)
+        (derive-log expr var)])]
+    [else
+     (cond
+       [(variable? expr)
+        (derive-var expr var)]
+       [else
+        0])]))
+
+;Testing
+(pretty-print '((derivative-extended '(+ 1 x) 'x)))
+(derivative-extended '(+ 1 x) 'x)
+
+(pretty-print '((derivative-extended '(* 2 y) 'y)))
+(derivative-extended '(* 2 y) 'y)
+
+(pretty-print '((derivative-extended '(* (+ x y) (+ x (+ x x))) 'x)))
+(derivative-extended '(* (+ x y) (+ x (+ x x))) 'x)
+
+(pretty-print '((derivative-extended '(+ x (cos x)) 'x)))
+(derivative-extended '(+ x (cos x)) 'x)
+
+(pretty-print '((derivative-extended '(+ x (cos (* x y))) 'x)))
+(derivative-extended '(+ x (cos (* x y))) 'x)
+
+(pretty-print '((derivative-extended '(+ x (sin x)) 'x)))
+(derivative-extended '(+ x (sin x)) 'x)
+
+(pretty-print '((derivative-extended '(+ x (tan x)) 'x)))
+(derivative-extended '(+ x (tan x)) 'x)
+
+(pretty-print '((derivative-extended '(+ x (^ x y)) 'x)))
+(derivative-extended '(+ x (^ x y)) 'x)
+
+(pretty-print '((derivative-extended '(+ x (log x)) 'x)))
+(derivative-extended '(+ x (log x)) 'x)
