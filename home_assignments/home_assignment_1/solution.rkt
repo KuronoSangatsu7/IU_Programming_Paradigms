@@ -172,3 +172,17 @@
 (simplify '(+ (* 0 y) (* 2 1)))
 (simplify '(+ (* (+ 1 0) (+ x (+ x x))) (* (+ x y) (+ 1 (+ 1 1)))))
 
+;Swaps the first and second elements of a list
+(define (swap expr)
+  (append (list (cadr expr) (car expr)) (cddr expr)))
+(swap '(1 2 3 4 5))
+
+;Converts a given expression to infix form
+(define (to-infix expr)
+  (cond
+    [(not (list? expr))
+     expr]
+    [else
+     (swap (list (car expr) (to-infix (cadr expr)) (to-infix (caddr expr))))]))
+
+(to-infix '(+ (+ x (+ x x)) (* (+ x y) 3)))
