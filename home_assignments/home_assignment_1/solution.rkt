@@ -65,6 +65,7 @@
      0]))
 (derive-var 'x 'x)
 
+;Derives an expression with respect to a given variable
 (define (derivative expr var)
   (cond
     [(empty? expr)
