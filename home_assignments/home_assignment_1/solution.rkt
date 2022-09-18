@@ -166,17 +166,10 @@
 ;Simplifies a given expression according to the given rules
 (define (simplify expr)
   (cond
-    [(or
-      (not (list? expr))
-      (and
-            (not (list? (cadr expr)))
-            (not (list? (caddr expr)))
-            (equal? (compute-at-root expr) expr)))
+    [(not (list? expr))
      expr]
-    [(equal? (compute-at-root expr) expr)
-     (compute-at-root (list (car expr) (simplify (cadr expr)) (simplify (caddr expr))))]
     [else
-     (simplify (compute-at-root expr))]))
+     (compute-at-root (list (car expr) (simplify (cadr expr)) (simplify (caddr expr))))]))
 
 (simplify '(+ 0 1))
 (simplify '(+ (* 0 y) (* 2 1)))
