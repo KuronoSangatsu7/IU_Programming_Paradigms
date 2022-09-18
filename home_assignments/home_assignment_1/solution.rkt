@@ -66,6 +66,7 @@
 (derive-var 'x 'x)
 
 ;Derives an expression with respect to a given variable
+;TODO: Consider deleting the first condition (empty?)
 (define (derivative expr var)
   (cond
     [(empty? expr)
@@ -85,3 +86,94 @@
 (derivative '(+ 1 x) 'x)
 (derivative '(* 2 y) 'y)
 (derivative '(* (+ x y) (+ x (+ x x))) 'x)
+
+;1.3
+;Computes the sum of a given expression at the top level according to the specified rules.
+(define (compute-sum expr)
+  (cond
+    [(and
+      (number? (cadr expr))
+      (number? (caddr expr)))
+     (+ (cadr expr) (caddr expr))]
+    [else
+     (cond
+       [(or
+         (equal? 0 (cadr expr))
+         (equal? 0 (caddr expr)))
+        (cond
+          [(equal? 0 (cadr expr))
+           (caddr expr)]
+          [else
+           (cadr expr)])]
+       [else
+        expr])]))
+(compute-sum '(+ 1 2))
+(compute-sum '(+ x 0))
+(compute-sum '(+ 0 x))
+(compute-sum '(+ (+ x (+ y 1)) 0))
+
+;Computes the product of a given expression at the top level according to the specified rules.
+(define (compute-prod expr)
+  (cond
+    [(and
+      (number? (cadr expr))
+      (number? (caddr expr)))
+     (* (cadr expr) (caddr expr))]
+    [else
+     (cond
+       [(or
+         (equal? 0 (cadr expr))
+         (equal? 0 (caddr expr)))
+        0]
+       [else
+        (cond
+          [(or
+            (equal? 1 (cadr expr))
+            (equal? 1 (caddr expr)))
+           (cond
+             [(equal? 1 (cadr expr))
+              (caddr expr)]
+             [else
+              (cadr expr)])]
+          [else
+           expr])])]))
+(compute-prod '(* x 1))
+(compute-prod '(* 1 x))
+(compute-prod '(* 3 3))
+(compute-prod '(* 0 x))
+(compute-prod '(* (+ x y) 0))
+(compute-prod '(* 1 (+ x y)))
+
+;Computes the sum or product of a given expression at the top level according to the specified rules. To be called recursively by the simplify function
+(define (compute-at-root expr)
+  (cond
+    [(sum? expr)
+     (compute-sum expr)]
+    [(product? expr)
+     (compute-prod expr)]))
+
+(compute-at-root '(+ 1 2))
+(compute-at-root '(+ x 0))
+(compute-at-root '(+ 0 x))
+(compute-at-root '(+ (+ x (+ y 1)) 0))
+(compute-at-root '(* x 1))
+(compute-at-root '(* 1 x))
+(compute-at-root '(* 3 3))
+(compute-at-root '(* 0 x))
+(compute-at-root '(* (+ x y) 0))
+(compute-at-root '(* 1 (+ x y)))
+
+;Simplifies a given expression according to the given rules
+(define (simplify expr)
+  (cond
+    [(or
+      (not (list? expr))
+      (equal? (compute-at-root expr) expr))
+     expr]
+    [else
+     (simplify (compute-at-root expr))]))
+
+(simplify '(+ 0 1))
+(simplify '(+ (* 0 y) (* 2 1)))
+(simplify '(+ (* (+ 1 0) (+ x (+ x x))) (* (+ x y) (+ 1 (+ 1 1)))))
+
