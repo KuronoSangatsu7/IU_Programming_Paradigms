@@ -168,8 +168,13 @@
   (cond
     [(or
       (not (list? expr))
-      (equal? (compute-at-root expr) expr))
+      (and
+            (not (list? (cadr expr)))
+            (not (list? (caddr expr)))
+            (equal? (compute-at-root expr) expr)))
      expr]
+    [(equal? (compute-at-root expr) expr)
+     (compute-at-root (list (car expr) (simplify (cadr expr)) (simplify (caddr expr))))]
     [else
      (simplify (compute-at-root expr))]))
 
