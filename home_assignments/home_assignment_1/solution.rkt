@@ -748,5 +748,10 @@
 (pretty-print '((variables-of '(+ 1 x y (* x y z)))))
 (variables-of '(+ 1 x y (* x y z)))
 
+;1.9
+; Returns a gradient of a multivariable expression given explicitly a list of variables
+(define (gradient expr vars)
+  (map (lambda (var) (simplify-final (derivative-final expr var))) vars))
 
-
+(pretty-print '((gradient '(+ 1 x y (* x y z)) '(x y z))))
+(gradient '(+ 1 x y (* x y z)) '(x y z))
