@@ -638,3 +638,71 @@
 
 (pretty-print '((derivative-final '(+ 1 x y (* x y z)) 'x)))
 (derivative-final '(+ 1 x y (* x y z)) 'x)
+
+;Checks whether a given expression is NOT equivalent to 0
+(define (is-not-zero? expr)
+  (not (equal? 0 expr)))
+
+;Checks whether a given expression is equivalent to 0
+(define (is-zero? expr)
+  (equal? 0 expr))
+
+;Checks whether a given expression is NOT equivalent to 1
+(define (is-not-one? expr)
+  (not (equal? 1 expr)))
+
+;Removes a plus/multiplication sign applied to a single expression
+(define (remove-redundant-sign expr)
+  (cond
+    [(= (length expr) 2)
+     (cadr expr)]
+    [else
+     expr]))
+
+;Computes sum of expressions at the top level
+(define (compute-sum-final expr)
+  (cond
+    [(andmap number? expr)
+     (apply + (rest expr))]
+    [else
+     (remove-redundant-sign (filter is-not-zero? expr))]))
+
+;Computes product of expressions at the top level
+(define (compute-prod-final expr)
+  (cond
+    [(andmap number? expr)
+     (apply * (rest expr))]
+    [(ormap is-zero? expr)
+     0]
+    [else
+     (remove-redundant-sign (filter is-not-one? expr))]))
+
+;Computes a given expression at the top level. To be called recursively by the simplify-final function
+(define (compute-at-root-final expr)
+  (cond
+    [(sum? expr)
+     (compute-sum-final expr)]
+    [(product? expr)
+     (compute-prod-final expr)]
+    [(exponent? expr)
+     (compute-exp expr)]
+    [(sin? expr)
+     (compute-sin expr)]
+    [(cos? expr)
+     (compute-cos expr)]
+    [(tan? expr)
+     (compute-tan expr)]
+    [(log? expr)
+     (compute-log expr)]))
+
+;Simplifies a given expression
+(define (simplify-final expr)
+  (cond
+    [(not (list? expr))
+     expr]
+    [else
+     (compute-at-root-final (append (list (car expr)) (map (lambda (expr-1) (simplify-final expr-1)) (rest expr))))]))
+
+;Testing
+(pretty-print '((simplify-final '(+ 0 1 0 (+ (* y z 1) (* x z 0) (* x y 0))))))
+(simplify-final '(+ 0 1 0 (+ (* y z 1) (* x z 0) (* x y 0))))
