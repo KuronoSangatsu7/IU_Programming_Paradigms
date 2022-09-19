@@ -706,3 +706,47 @@
 ;Testing
 (pretty-print '((simplify-final '(+ 0 1 0 (+ (* y z 1) (* x z 0) (* x y 0))))))
 (simplify-final '(+ 0 1 0 (+ (* y z 1) (* x z 0) (* x y 0))))
+
+;1.8
+;Removes duplicates of the first element of a list (From my solutions for lab 3)
+(define (helper-filter also-a-list val)
+    (cons val
+    (filter (lambda (elem, val)
+              (cond
+                [(equal? elem val) #f]
+                [else #t])) (rest also-a-list))))
+
+;Testing
+(pretty-print '((helper-filter '(1 2 3 4 5 1 1) (first '(1 2 3 4 5 1 1)))))
+(helper-filter '(1 2 3 4 5 1 1) (first '(1 2 3 4 5 1 1)))
+
+;Removes duplicates from a list (From my solutions for lab 3)
+(define (my-remove-duplicates some-list)
+  (define (helper also-a-list res)
+    (cond
+      [(empty? also-a-list) (reverse res)]
+      [else (helper (rest (helper-filter also-a-list (first also-a-list))) (cons (first also-a-list) res))]))
+  (helper some-list empty))
+
+;Testing
+(pretty-print '((my-remove-duplicates '(1 2 4 5 1 4 5 3 3 1 1 1 2))))
+(my-remove-duplicates '(1 2 4 5 1 4 5 3 3 1 1 1 2))
+
+;Returns a list containing distinct variables occurring in an expression by order of occurrance
+(define (variables-of expr)
+  (cond
+    [(not (list? expr))
+     (cond
+       [(variable? expr)
+        expr]
+       [else
+        empty])]
+    [else
+     (my-remove-duplicates (flatten (append (map (lambda (expr-1) (variables-of expr-1)) (cdr expr)))))]))
+
+;Testing
+(pretty-print '((variables-of '(+ 1 x y (* x y z)))))
+(variables-of '(+ 1 x y (* x y z)))
+
+
+
