@@ -582,20 +582,9 @@
      expr]
     [else
      (compute-at-root-extended (append (list (car expr)) (map (lambda (expr-1) (simplify-extended expr-1)) (rest expr))))]))
+
+;Testing
+(pretty-print '((simplify-extended '(+ x y))))
 (simplify-extended '(+ x y))
-(simplify-extended '(+ ((((x + y) ^ 1) + 0) * 1) (- (log 1) (cos 55))))
-;(map (lambda (expr-1) (simplify-extended expr-1)) (rest expr))
-
-; This works: (map (lambda (num) (number? num)) '(1 4 x y z 5 7)) hmmmmmm
-
-;A utility function which transforms an expression given in infix notation to prefix notation
-(define (to-prefix expr)
-  (cond
-    [(not (list? expr))
-     expr]
-    [(equal? (length expr) 2)
-     expr]
-    [else
-     (swap (list (car expr) (to-prefix (cadr expr)) (to-prefix (caddr expr))))]))
-
-(to-prefix '(((((x + y) ^ 1) + 0) * 1) + ((log 1) - (cos 55))))
+(pretty-print '((simplify-extended '(+ (* (+ (^ (+ x y) 1) 0) 1) (+ (log 1) (cos 55))))))
+(simplify-extended '(+ (* (+ (^ (+ x y) 1) 0) 1) (+ (log 1) (cos 55))))
