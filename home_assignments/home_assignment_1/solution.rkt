@@ -586,5 +586,55 @@
 ;Testing
 (pretty-print '((simplify-extended '(+ x y))))
 (simplify-extended '(+ x y))
+
 (pretty-print '((simplify-extended '(+ (* (+ (^ (+ x y) 1) 0) 1) (+ (log 1) (cos 55))))))
 (simplify-extended '(+ (* (+ (^ (+ x y) 1) 0) 1) (+ (log 1) (cos 55))))
+
+;1.7
+;Appends a given expression (element or list) to the end of a given list
+(define (my-append expr expr-2)
+  (cond
+    [(list? expr-2)
+     (append expr expr-2)]
+    [else
+     (foldr cons (list expr-2) expr)]))
+
+;Testing
+(pretty-print '((my-append '(1 2 3) 1)))
+(my-append '(1 2 3) 1)
+
+(pretty-print '((my-append '(1 2 3) '(1 2))))
+(my-append '(1 2 3) '(1 2))
+
+;Derives an expression with respect to a given variable
+(define (derivative-final expr var)
+  (cond
+    [(list? expr)
+     (cond
+       [(sum? expr)
+        (append (list '+) (map (lambda (expr-1) (derivative-final expr-1 var)) (rest expr)))]
+       [(product? expr)
+        (append (list '+) (map (lambda (expr-1) (my-append (append (list '*) (rest (remove expr-1 expr))) (derivative-final expr-1 var))) (rest expr)))]
+       [(exponent? expr)
+        (derive-exponent expr var)]
+       [(sin? expr)
+        (derive-sine expr var)]
+       [(cos? expr)
+        (derive-cosine expr var)]
+       [(tan? expr)
+        (derive-tangent expr var)]
+       [(log? expr)
+        (derive-log expr var)])]
+    [else
+     (cond
+       [(variable? expr)
+        (derive-var expr var)]
+       [else
+        0])]))
+
+;Testing
+(pretty-print '((derivative-final '(+ 1 x y) 'x)))
+(derivative-final '(+ 1 x y) 'x)
+
+(pretty-print '((derivative-final '(+ 1 x y (* x y z)) 'x)))
+(derivative-final '(+ 1 x y (* x y z)) 'x)
