@@ -368,69 +368,25 @@
 (pretty-print '((log? '(log 1))))
 (log? '(log 1))
 
-;Checks whether a given expression is part of the given expression(s) or not
-(define (is-member? expr expressions)
-  (cond
-    [(list? expressions)
-     (ormap
-      (lambda (e)
-        (equal? e expr))
-      expressions)]
-    [else
-     (equal? expr expressions)]))
-
-;Testing
-(pretty-print '((is-member? 'x '(x y z))))
-(is-member? 'x '(x y z))
-
-(pretty-print '((is-member? 'f '(x y z))))
-(is-member? 'f '(x y z))
-
-(pretty-print '((is-member? 'f 'f)))
-(is-member? 'f 'f)
-
-
 ;Derives an exponentiation with respect to a given variable
-(define (derive-exponent expr respect-to)
-  (cond
-    [(is-member? respect-to (cadr expr))
-     (list '* (caddr expr) (list '^ (cadr expr) (list '+ (caddr expr) -1)))]
-    [(is-member? respect-to (caddr expr))
-     (list '* expr (list 'log (cadr expr)))]
-    [else
-     0]))
+(define (derive-exponent expr var)
+  (list '* expr (list '+ (list '* (caddr expr) (list '* (derivative-extended (cadr expr) var) (list '^ (cadr expr) -1))) (list '* (derivative-extended (caddr expr) var) (list 'log (cadr expr))))))
 
 ;Derives a sine with respect to a given variable
 (define (derive-sine expr var)
-  (cond
-    [(is-member? var (cadr expr))
-     (list 'cos (cadr expr))]
-    [else
-     0]))
+  (list '* (list 'cos (cadr expr)) (derivative-extended (cadr expr) var)))
 
 ;Derives a cosine with respect to a given variable
 (define (derive-cosine expr var)
-  (cond
-    [(is-member? var (cadr expr))
-     (list '* -1 (list 'sin (cadr expr)))]
-    [else
-     0]))
+  (list '* (derivative-extended (cadr expr) var) (list '* -1 (list 'sin (cadr expr)))))
 
 ;Derives a tangent with respect to a given variable
 (define (derive-tangent expr var)
-  (cond
-    [(is-member? var (cadr expr))
-     (list '^ (list '^ (list 'cos (cadr expr)) 2) -1)]
-    [else
-     0]))
+  (list '* (derivative-extended (cadr expr) var) (list '^ (list '^ (list 'cos (cadr expr)) 2) -1)))
 
 ;Derives a natural logarithm with respect to a given variable
 (define (derive-log expr var)
-  (cond
-    [(is-member? var (cadr expr))
-    (list '^ (cadr expr) -1)]
-    [else
-     0]))
+  (list '* (derivative-extended (cadr expr) var) (list '^ -1 (cadr expr))))
 
 ;Derives an expression with respect to a given variable
 (define (derivative-extended expr var)
@@ -486,7 +442,6 @@
 (pretty-print '((derivative-extended '(+ x (log x)) 'x)))
 (derivative-extended '(+ x (log x)) 'x)
 
-
 ;Computes the exponentiation of a given expression at the top level
 (define (compute-exp expr)
   (cond
@@ -498,6 +453,10 @@
       (not (list? (caddr expr)))
       (equal? (caddr expr) 1))
      (cadr expr)]
+    [(and
+      (number? (cadr expr))
+      (number? (caddr expr)))
+     (expt (cadr expr) (caddr expr))]
     [else
      expr]))
 
@@ -506,6 +465,9 @@
 
 (pretty-print '(compute-exp '(^ (* y z) 1)))
 (compute-exp '(^ (* y z) 1))
+
+(pretty-print '((compute-exp '(^ 2 3))))
+(compute-exp '(^ 2 3))
 
 ;Functions to compute the numeric value of trigonometric functions and natural logarithm when applied to constants at the top level
 (define (compute-sin expr)
@@ -590,6 +552,9 @@
 (pretty-print '((simplify-extended '(+ (* (+ (^ (+ x y) 1) 0) 1) (+ (log 1) (cos 55))))))
 (simplify-extended '(+ (* (+ (^ (+ x y) 1) 0) 1) (+ (log 1) (cos 55))))
 
+(pretty-print '((simplify-extended (derivative-extended '(^ (+ x y) (* z x)) 'x))))
+(simplify-extended (derivative-extended '(^ (+ x y) (* z x)) 'x))
+
 ;1.7
 ;Appends a given expression (element or list) to the end of a given list
 (define (my-append expr expr-2)
@@ -606,6 +571,26 @@
 (pretty-print '((my-append '(1 2 3) '(1 2))))
 (my-append '(1 2 3) '(1 2))
 
+;Derives an exponentiation with respect to a given variable
+(define (derive-exponent-final expr var)
+  (list '* expr (list '+ (list '* (caddr expr) (derivative-final (cadr expr) var) (list '^ (cadr expr) -1)) (list '* (derivative-final (caddr expr) var) (list 'log (cadr expr))))))
+
+;Derives a sine with respect to a given variable
+(define (derive-sine-final expr var)
+  (list '* (list 'cos (cadr expr)) (derivative-final (cadr expr) var)))
+
+;Derives a cosine with respect to a given variable
+(define (derive-cosine-final expr var)
+  (list '* (derivative-final (cadr expr) var) (list '* -1 (list 'sin (cadr expr)))))
+
+;Derives a tangent with respect to a given variable
+(define (derive-tangent-final expr var)
+  (list '* (derivative-final (cadr expr) var) (list '^ (list '^ (list 'cos (cadr expr)) 2) -1)))
+
+;Derives a natural logarithm with respect to a given variable
+(define (derive-log-final expr var)
+  (list '* (derivative-final (cadr expr) var) (list '^ -1 (cadr expr))))
+
 ;Derives an expression with respect to a given variable
 (define (derivative-final expr var)
   (cond
@@ -616,15 +601,15 @@
        [(product? expr)
         (append (list '+) (map (lambda (expr-1) (my-append (append (list '*) (rest (remove expr-1 expr))) (derivative-final expr-1 var))) (rest expr)))]
        [(exponent? expr)
-        (derive-exponent expr var)]
+        (derive-exponent-final expr var)]
        [(sin? expr)
-        (derive-sine expr var)]
+        (derive-sine-final expr var)]
        [(cos? expr)
-        (derive-cosine expr var)]
+        (derive-cosine-final expr var)]
        [(tan? expr)
-        (derive-tangent expr var)]
+        (derive-tangent-final expr var)]
        [(log? expr)
-        (derive-log expr var)])]
+        (derive-log-final expr var)])]
     [else
      (cond
        [(variable? expr)
@@ -651,11 +636,17 @@
 (define (is-not-one? expr)
   (not (equal? 1 expr)))
 
+;Checks whether a given expression is NOT a number
+(define (is-nan? expr)
+  (not (number? expr)))
+
 ;Removes a plus/multiplication sign applied to a single expression
 (define (remove-redundant-sign expr)
   (cond
     [(= (length expr) 2)
      (cadr expr)]
+    [(= (length expr) 1)
+     empty]
     [else
      expr]))
 
@@ -664,6 +655,8 @@
   (cond
     [(andmap number? expr)
      (apply + (rest expr))]
+    [(ormap number? expr)
+     (remove-redundant-sign (filter is-not-zero? (my-append (filter is-nan? expr) (apply + (filter number? expr)))))]
     [else
      (remove-redundant-sign (filter is-not-zero? expr))]))
 
@@ -674,6 +667,8 @@
      (apply * (rest expr))]
     [(ormap is-zero? expr)
      0]
+    [(ormap number? expr)
+     (remove-redundant-sign (filter is-not-one? (my-append (filter is-nan? expr) (apply * (filter number? expr)))))]
     [else
      (remove-redundant-sign (filter is-not-one? expr))]))
 
@@ -706,6 +701,10 @@
 ;Testing
 (pretty-print '((simplify-final '(+ 0 1 0 (+ (* y z 1) (* x z 0) (* x y 0))))))
 (simplify-final '(+ 0 1 0 (+ (* y z 1) (* x z 0) (* x y 0))))
+
+(derivative-final '(^ (+ (* x -1 (tan z)) y 3) (* z (+ x (log 1)) 5 2)) 'x)
+(pretty-print '((simplify-final (derivative-final (^ (+ (* x -1 (tan z)) y 3) (* z (+ x (log 1)) 5 2)) 'x))))
+(simplify-final (derivative-final '(^ (+ (* x -1 (tan z)) y 3) (* z (+ x (log 1)) 5 2)) 'x))
 
 ;1.8
 ;Removes duplicates of the first element of a list (From my solutions for lab 3)
@@ -753,5 +752,6 @@
 (define (gradient expr vars)
   (map (lambda (var) (simplify-final (derivative-final expr var))) vars))
 
+;Testing
 (pretty-print '((gradient '(+ 1 x y (* x y z)) '(x y z))))
 (gradient '(+ 1 x y (* x y z)) '(x y z))
