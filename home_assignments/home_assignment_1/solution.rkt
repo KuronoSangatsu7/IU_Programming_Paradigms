@@ -676,9 +676,17 @@
 (define (compute-at-root-final expr)
   (cond
     [(sum? expr)
-     (compute-sum-final expr)]
+     (cond
+       [(empty? (compute-sum-final expr))
+        0]
+       [else
+        (compute-sum-final expr)])]
     [(product? expr)
-     (compute-prod-final expr)]
+     (cond
+       [(empty? (compute-prod-final expr))
+        1]
+       [else
+        (compute-prod-final expr)])]
     [(exponent? expr)
      (compute-exp expr)]
     [(sin? expr)
@@ -702,7 +710,6 @@
 (pretty-print '((simplify-final '(+ 0 1 0 (+ (* y z 1) (* x z 0) (* x y 0))))))
 (simplify-final '(+ 0 1 0 (+ (* y z 1) (* x z 0) (* x y 0))))
 
-(derivative-final '(^ (+ (* x -1 (tan z)) y 3) (* z (+ x (log 1)) 5 2)) 'x)
 (pretty-print '((simplify-final (derivative-final (^ (+ (* x -1 (tan z)) y 3) (* z (+ x (log 1)) 5 2)) 'x))))
 (simplify-final (derivative-final '(^ (+ (* x -1 (tan z)) y 3) (* z (+ x (log 1)) 5 2)) 'x))
 
