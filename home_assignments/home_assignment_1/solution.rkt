@@ -826,7 +826,7 @@
        [else
         empty])]
     [else
-     (my-remove-duplicates (flatten (append (map (lambda (expr-1) (variables-of expr-1)) (cdr expr)))))]))
+     (sort (my-remove-duplicates (flatten (append (map (lambda (expr-1) (variables-of expr-1)) (cdr expr))))) #:key symbol->string string<?)]))
 
 ;Testing
 (pretty-print '((variables-of '(+ 1 x y (* x y z)))))
