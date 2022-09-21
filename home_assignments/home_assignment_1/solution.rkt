@@ -4,7 +4,14 @@
 (define (variable? expr)
   (cond
     [(or (list? expr)
-         (number? expr))
+         (number? expr)
+         (equal? expr '+)
+         (equal? expr '*)
+         (equal? expr 'log)
+         (equal? expr '^)
+         (equal? expr 'sin)
+         (equal? expr 'cos)
+         (equal? expr 'tan))
      #f]
     [else #t]))
 
@@ -19,6 +26,7 @@
 (define (sum? expr)
   (cond
     [(and (list? expr)
+          (> (length expr) 2)
           (equal? (car expr) '+))
      #t]
     [else #f]))
@@ -34,6 +42,7 @@
 (define (product? expr)
   (cond
     [(and (list? expr)
+          (> (length expr) 2)
           (equal? (car expr) '*))
      #t]
     [else #f]))
@@ -293,6 +302,7 @@
 (define (exponent? expr)
   (cond
     [(and (list? expr)
+          (> (length expr) 2)
           (equal? (car expr) '^))
      #t]
     [else #f]))
@@ -591,9 +601,68 @@
 (define (derive-log-final expr var)
   (list '* (derivative-final (cadr expr) var) (list '^ -1 (cadr expr))))
 
+;Valid Expression Checker
+
+;Checks whether a given list is a valid operation
+(define (valid-operation? expr)
+  (cond
+    [(or
+      (sum? expr)
+      (product? expr)
+      (log? expr)
+      (sin? expr)
+      (cos? expr)
+      (tan? expr)
+      (exponent? expr))
+     #t]
+    [else
+     #f]))
+
+;Checks whether a given expression is valid to be used by the program
+(define (verify-expression-integrity expr)
+  (cond
+    [(not (list? expr))
+     (cond
+       [(or
+         (variable? expr)
+         (number? expr))
+        #t]
+       [else
+        #f])]
+    [else
+     (cond
+       [(valid-operation? expr)
+        (andmap verify-expression-integrity (cdr expr))]
+       [else
+        #f])]))
+
+;Testing
+(pretty-print '((verify-expression-integrity '(+ 1 2))))
+(verify-expression-integrity '(+ 1 2))
+
+(pretty-print '((verify-expression-integrity '(+))))
+(verify-expression-integrity '(+))
+
+(pretty-print '((verify-expression-integrity '(* 1))))
+(verify-expression-integrity '(* 1))
+
+(pretty-print '((verify-expression-integrity '())))
+(verify-expression-integrity '())
+
+(pretty-print '((verify-expression-integrity 'x)))
+(verify-expression-integrity 'x)
+
+(pretty-print '((verify-expression-integrity '+)))
+(verify-expression-integrity '+)
+
+(pretty-print '((verify-expression-integrity '(* 5 (^ 2)))))
+(verify-expression-integrity '(* 5 (^ 2)))
+
 ;Derives an expression with respect to a given variable
 (define (derivative-final expr var)
   (cond
+    [(not (verify-expression-integrity expr))
+     (error "Invalid expression, please use the function verify-expression-integrity to verify your expression before performing operations on it")]
     [(list? expr)
      (cond
        [(sum? expr)
@@ -701,6 +770,8 @@
 ;Simplifies a given expression
 (define (simplify-final expr)
   (cond
+    [(not (verify-expression-integrity expr))
+     (error "Invalid expression, please use the function verify-expression-integrity to verify your expression before performing operations on it")]
     [(not (list? expr))
      expr]
     [else
@@ -711,7 +782,9 @@
 (simplify-final '(+ 0 1 0 (+ (* y z 1) (* x z 0) (* x y 0))))
 
 (pretty-print '((simplify-final (derivative-final (^ (+ (* x -1 (tan z)) y 3) (* z (+ x (log 1)) 5 2)) 'x))))
+(derivative-final '(^ (+ (* x -1 (tan z)) y 3) (* z (+ x (log 1)) 5 2)) 'x)
 (simplify-final (derivative-final '(^ (+ (* x -1 (tan z)) y 3) (* z (+ x (log 1)) 5 2)) 'x))
+
 
 ;1.8
 ;Removes duplicates of the first element of a list (From my solutions for lab 3)
