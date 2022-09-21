@@ -1,3 +1,6 @@
+; Author: Jaffar Totanji - SD-01
+; j.totanji@innopolis.university
+
 #lang slideshow
 ;1.1
 ;Takes a datum of length one and decides if it's a variable or not
@@ -277,6 +280,7 @@
 (pretty-print '((simplify '(+ (* (+ 1 0) (+ x (+ x x))) (* (+ x y) (+ 1 (+ 1 1)))))))
 (simplify '(+ (* (+ 1 0) (+ x (+ x x))) (* (+ x y) (+ 1 (+ 1 1)))))
 
+;1.5
 ;Swaps the first and second elements of a list
 (define (swap expr)
   (append (list (cadr expr) (car expr)) (cddr expr)))
