@@ -306,7 +306,7 @@
 (define (exponent? expr)
   (cond
     [(and (list? expr)
-          (> (length expr) 2)
+          (= (length expr) 3)
           (equal? (car expr) '^))
      #t]
     [else #f]))
@@ -400,7 +400,7 @@
 
 ;Derives a natural logarithm with respect to a given variable
 (define (derive-log expr var)
-  (list '* (derivative-extended (cadr expr) var) (list '^ -1 (cadr expr))))
+  (list '* (derivative-extended (cadr expr) var) (list '^ (cadr expr) -1)))
 
 ;Derives an expression with respect to a given variable
 (define (derivative-extended expr var)
@@ -603,7 +603,7 @@
 
 ;Derives a natural logarithm with respect to a given variable
 (define (derive-log-final expr var)
-  (list '* (derivative-final (cadr expr) var) (list '^ -1 (cadr expr))))
+  (list '* (derivative-final (cadr expr) var) (list '^ (cadr expr) -1)))
 
 ;Valid Expression Checker
 
@@ -670,9 +670,9 @@
     [(list? expr)
      (cond
        [(sum? expr)
-        (append (list '+) (map (lambda (expr-1) (derivative-final expr-1 var)) (rest expr)))]
+        (append '(+) (map (lambda (expr-1) (derivative-final expr-1 var)) (rest expr)))]
        [(product? expr)
-        (append (list '+) (map (lambda (expr-1) (my-append (append (list '*) (rest (remove expr-1 expr))) (derivative-final expr-1 var))) (rest expr)))]
+        (append '(+) (map (lambda (expr-1) (append (remove expr-1 expr) (list (derivative-final expr-1 var)))) (rest expr)))]
        [(exponent? expr)
         (derive-exponent-final expr var)]
        [(sin? expr)
@@ -782,13 +782,14 @@
      (compute-at-root-final (append (list (car expr)) (map (lambda (expr-1) (simplify-final expr-1)) (rest expr))))]))
 
 ;Testing
+(pretty-print '((simplify-final (derivative-final '(* z (+ 1 2)) 'x))))
+(simplify-final (derivative-final '(* z (+ 1 2)) 'x))
+
 (pretty-print '((simplify-final '(+ 0 1 0 (+ (* y z 1) (* x z 0) (* x y 0))))))
 (simplify-final '(+ 0 1 0 (+ (* y z 1) (* x z 0) (* x y 0))))
 
-(pretty-print '((simplify-final (derivative-final (^ (+ (* x -1 (tan z)) y 3) (* z (+ x (log 1)) 5 2)) 'x))))
-(derivative-final '(^ (+ (* x -1 (tan z)) y 3) (* z (+ x (log 1)) 5 2)) 'x)
+(pretty-print '((simplify-final (derivative-final '(^ (+ (* x -1 (tan z)) y 3) (* z (+ x (log 1)) 5 2)) 'x))))
 (simplify-final (derivative-final '(^ (+ (* x -1 (tan z)) y 3) (* z (+ x (log 1)) 5 2)) 'x))
-
 
 ;1.8
 ;Removes duplicates of the first element of a list (From my solutions for lab 3)
