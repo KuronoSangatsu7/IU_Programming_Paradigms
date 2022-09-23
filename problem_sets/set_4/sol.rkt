@@ -102,4 +102,102 @@
          (list null null)
          given-list)))
 
-(pairs '(a b c d))
+;(pairs '(a b c d))
+
+;2.b
+;(define (splits given-list)
+;  (second (foldl (lambda (element result)
+;                   (cons (append (first result) (list element)) (list (append (second result) (list (split given-list (length (first result))))))))
+;          (list null null)
+;          given-list)))
+;(splits '(a b c))
+
+(define (splits given-list)
+  (map (lambda (element) (split given-list element)) (build-list (+ (length given-list) 1) values)))
+;(splits '(a b c))
+
+;2.c
+(define (perform-op given-pair op)
+  (op (car given-pair) (cdr given-pair)))
+
+(define (max-product given-list)
+  (define pair-list (pairs given-list))
+  (foldl (lambda (current-pair result)
+           (cond
+             [(> (perform-op current-pair *) (perform-op result *))
+              current-pair]
+             [else
+              result]))
+         (first pair-list)
+         pair-list))
+
+;(max-product '(1 2 3 4 3 2 1))
+
+;2.d
+(define (max-binary-op op given-list)
+  (define pair-list (pairs given-list))
+  (foldl (lambda (current-pair result)
+           (cond
+             [(> (perform-op current-pair op) (perform-op result op))
+              current-pair]
+             [else
+              result]))
+         (first pair-list)
+         pair-list))
+
+;(max-binary-op * '(1 2 3 4 3 2 1))
+;(max-binary-op - '(1 2 3 4 3 2 1))
+
+;3
+
+;3.a
+(define (max given-list)
+  (foldl (lambda (element result)
+           (cond
+             [(> element result)
+              element]
+             [else
+              result]))
+         (first given-list)
+         given-list))
+;(max '(1 5 3 6 2 0))
+
+;3.b
+(define (second-max given-list)
+  (cdr (foldl (lambda (element result)
+           (cond
+             [(and
+               (> element (cdr result))
+               (< element (car result)))
+              (cons (car result) element)]
+             [else
+              result]))
+         (cons (max given-list) (first given-list))
+         given-list)))
+;(second-max '(1 5 3 6 2 0))
+
+;3.c
+(define (top-3 given-list)
+  (cons (max given-list)
+        (foldl (lambda (element result)
+           (cond
+             [(and
+               (> element (cadr result))
+               (< element (car result)))
+              (cons (car result) element)]
+             [else
+              result]))
+         (cons (second-max given-list) (list (first given-list)))
+         given-list)))
+;(top-3 '(5 3 6 2 8 1 0))
+
+;3.d
+
+;3.e
+(define (cumulative-sums given-list)
+  (second (foldl (lambda (element result)
+                   (cons (+ element (first result)) (list (my-append (second result) (+ element (first result))))))
+                 (cons 0 (list '(0)))
+                 given-list)))
+
+;(cumulative-sums '(1 2 3 4 5))
