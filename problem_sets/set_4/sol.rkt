@@ -105,15 +105,16 @@
 ;(pairs '(a b c d))
 
 ;2.b
-;(define (splits given-list)
-;  (second (foldl (lambda (element result)
-;                   (cons (append (first result) (list element)) (list (append (second result) (list (split given-list (length (first result))))))))
-;          (list null null)
-;          given-list)))
+(define (splits given-list)
+  (append (second (foldl (lambda (element result)
+                   (cons (append (first result) (list element)) (list (append (second result) (list (split given-list (length (first result))))))))
+          (list null null)
+          given-list)) (list (split given-list (length given-list)))))
 ;(splits '(a b c))
 
-(define (splits given-list)
-  (map (lambda (element) (split given-list element)) (build-list (+ (length given-list) 1) values)))
+; A cleaner implementation using build-list
+;(define (splits given-list)
+;  (map (lambda (element) (split given-list element)) (build-list (+ (length given-list) 1) values)))
 ;(splits '(a b c))
 
 ;2.c
@@ -192,6 +193,18 @@
 ;(top-3 '(5 3 6 2 8 1 0))
 
 ;3.d
+(define (group given-list)
+  (define groups-result (foldl (lambda (element result)
+                   (cond
+                     [(equal? element (car (car result)))
+                      (cons (append (car result) (list element)) (cdr result))]
+                     [else
+                      (cons (list element) (list (append (second result) (list (car result)))))]))
+                 (cons (list (first given-list)) (list null))
+                 (rest given-list)))
+  (append (second groups-result) (list (first groups-result))))
+
+;(group '(a b b c c c b a a))
 
 ;3.e
 (define (cumulative-sums given-list)
