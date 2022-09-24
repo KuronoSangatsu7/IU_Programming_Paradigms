@@ -149,6 +149,83 @@
 ;(max-binary-op * '(1 2 3 4 3 2 1))
 ;(max-binary-op - '(1 2 3 4 3 2 1))
 
+;2.e
+;The idea is to generate a list of binary numbers up to (expt 2 (length given-list)), filter out the binary numbers with (= (count 1 number) given-size)
+;and then generate combinations per the filtered binary numbers
+
+;Converts a given decimal number to its binary bit-array representation
+(define (dec-to-bin num)
+  (cond
+    [(equal? num 0)
+     (list 0)]
+    [else
+     (define divisions (replicate (+ (floor (log num 2)) 1) 1))
+     (reverse (car (foldl (lambda (element result)
+                            (cons (append (first result) (list (remainder (second result) 2))) (list (quotient (second result) 2))))
+                          (cons null (list num))
+                          divisions)))]))
+
+;(dec-to-binary 55)
+
+;Returns a list of the numbers 0 through num
+(define (count-to num)
+  (define initial-list (replicate num 0))
+  (second (foldl (lambda (element result)
+                   (cons (+ 1 (first result)) (list (my-append (second result) (+ 1 (first result))))))
+                 (cons 0 (list '(0)))
+                 initial-list)))
+;(count-to 5)
+
+;Counts the number of 1 bits in a binary number
+(define (count-1s given-binary)
+  (foldl (lambda (element result)
+                   (+ result element))
+                 0
+                 given-binary))
+;(count-1s '(1 0 1 1 0))
+
+;Returns a list of binary numbers with the specified number of 1s up to a given number
+;Example: (binary-num-1s 10 2) -> '((1 1) (1 0 1) (1 1 0) (1 0 0 1) (1 0 1 0))
+(define (binary-num-1s num num-bits)
+  (define numbers (count-to num))
+  (define binary-numbers (map (lambda (element)
+                                (dec-to-bin element))
+                              numbers))
+  (filter (lambda (element)
+            (equal? (count-1s element) num-bits))
+          binary-numbers))
+
+;(binary-num-1s 10 2)
+
+;Returns a combination based on a binary representation of a number
+;Example: (generate-combination '(a b c) '(1 1 0)) -> '(a b)
+(define (generate-combination given-list binary-num-1)
+  (define binary-num (cond
+                       [(< (length binary-num-1) (length given-list))
+                          (append (replicate (- (length given-list) (length binary-num-1)) 0) binary-num-1)]
+                       [else
+                        binary-num-1]))
+  (filter (lambda (element)
+            (not (empty? element)))
+          (map (lambda (element binary-num)
+         (cond
+           [(= binary-num 1)
+            element]
+           [else
+            null]))
+       given-list
+       binary-num)))
+
+;(generate-combination '(a b c) '(1 1 0))
+
+(define (combinations given-list given-length)
+  (define combinations-binary (binary-num-1s (expt 2 (length given-list)) given-length))
+  (map (lambda (element)
+         (generate-combination given-list element))
+       combinations-binary))
+
+(combinations '(a b c d) 3)
+
 ;3
 
 ;3.a
