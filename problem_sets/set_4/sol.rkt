@@ -224,7 +224,7 @@
          (generate-combination given-list element))
        combinations-binary))
 
-(combinations '(a b c d) 3)
+;(combinations '(a b c d) 3)
 
 ;3
 
