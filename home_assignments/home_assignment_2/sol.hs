@@ -100,6 +100,9 @@ computeRule30 x y z = result
 
 -- A function to compute the next state of the cell in focus according to Rule 30
 rule30 :: Line Cell -> Cell
+rule30 (Line [] y (z:_)) = computeRule30 Dead y z
+rule30 (Line (x:_) y []) = computeRule30 x y Dead
+rule30 (Line [] y []) = computeRule30 Dead y Dead
 rule30 (Line (x:_) y (z:_)) = computeRule30 x y z
 
 -- 1.6
@@ -192,4 +195,4 @@ renderRule30 n line = renderRule30 (n - 1) newLine
     newLine = applyRule30 line
 
 main :: IO()
-main = drawingOf (renderLine (mapLine cellToPicture (cutLine 20 sampleLine1)))
+main = drawingOf (renderRule30 16 (cutLine 15 sampleLine1))
