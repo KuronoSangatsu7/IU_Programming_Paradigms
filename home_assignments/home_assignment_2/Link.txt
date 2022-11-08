@@ -1,1 +1,36 @@
-https://code.world/haskell#PZgiyzDQXa0WgJ4rrOuzU4w
+https://code.world/haskell#P2pIPHmT4f1_uH9qYi6lJfQ
+
+
+    Space 
+        (Line 
+        [Line [Dead,Dead] Dead [Dead,Dead],Line [Dead,Dead] Dead [Dead,Dead]] 
+        (Line [Alive,Dead] Alive [Alive,Dead]) 
+        [Line [Dead,Dead] Dead [Dead,Dead],Line [Dead,Dead] Dead [Dead,Dead]])
+
+left:
+
+    Just 
+    (Space 
+    (Line 
+    [Line [Dead] Dead [Dead,Dead,Dead],Line [Dead] Dead [Dead,Dead,Dead]]
+    (Line [Dead] Alive [Alive,Alive,Dead])
+    [Line [Dead] Dead [Dead,Dead,Dead],Line [Dead] Dead [Dead,Dead,Dead]]))
+
+right:
+
+
+    Just 
+    (Space 
+    (Line 
+    [Line [Dead,Dead,Dead] Dead [Dead],Line [Dead,Dead,Dead] Dead [Dead]]
+    (Line [Alive,Alive,Dead] Alive [Dead])
+    [Line [Dead,Dead,Dead] Dead [Dead],Line [Dead,Dead,Dead] Dead [Dead]]))
+
+up:
+
+    Just
+    (Space 
+    (Line 
+    [Line [Dead,Dead] Dead [Dead,Dead],Line [Dead,Dead] Dead [Dead,Dead]]
+    (Line [Dead] Alive [Alive,Alive,Dead])
+    [Line [Dead,Dead] Dead [Dead,Dead],Line [Dead,Dead] Dead [Dead,Dead]]))

@@ -301,22 +301,25 @@ pureShift :: (Line a -> Maybe (Line a)) -> Line a -> Line a
 pureShift f line = case f line of
   Nothing -> line
   Just result -> result
-
-shiftSpaceUp :: Space a -> Maybe (Space a)
-shiftSpaceUp (Space (Line [] y zs)) = Nothing
-shiftSpaceUp (Space line) = Just (Space (mapLine (pureShift shiftLeft) line))
-
-shiftSpaceDown :: Space a -> Maybe (Space a)
-shiftSpaceDown (Space (Line xs y [])) = Nothing
-shiftSpaceDown (Space line) = Just (Space (mapLine (pureShift shiftRight) line))
-
+-- Up
 shiftSpaceLeft :: Space a -> Maybe (Space a)
-shiftSpaceLeft (Space (Line as (Line [] y zs) cs)) = Nothing
-shiftSpaceLeft (Space (Line x line y)) = Just (Space (Line x (pureShift shiftLeft line) y))
+shiftSpaceLeft (Space (Line [] y zs)) = Nothing
+shiftSpaceLeft (Space line) = Just (Space (mapLine (pureShift shiftLeft) line))
 
+--Down
 shiftSpaceRight :: Space a -> Maybe (Space a)
-shiftSpaceRight (Space (Line as (Line xs y []) cs)) = Nothing
-shiftSpaceRight (Space (Line x line y)) = Just (Space (Line x (pureShift shiftRight line) y))
+shiftSpaceRight (Space (Line xs y [])) = Nothing
+shiftSpaceRight (Space line) = Just (Space (mapLine (pureShift shiftRight) line))
+
+-- Left
+shiftSpaceUp :: Space a -> Maybe (Space a)
+shiftSpaceUp (Space (Line as (Line [] y zs) cs)) = Nothing
+shiftSpaceUp (Space (Line x line y)) = Just (Space (Line x (pureShift shiftLeft line) y))
+
+-- Right
+shiftSpaceDown :: Space a -> Maybe (Space a)
+shiftSpaceDown (Space (Line as (Line xs y []) cs)) = Nothing
+shiftSpaceDown (Space (Line x line y)) = Just (Space (Line x (pureShift shiftRight line) y))
 
 shiftSpaceLeftAll :: Space a -> [Space a]
 shiftSpaceLeftAll space = case shiftSpaceLeft space of
@@ -348,4 +351,4 @@ applyConwayRule :: Space Cell -> Space Cell
 applyConwayRule space = mapSpace conwayRule (spaceShifts space)
 
 main :: IO()
-main = print ("hi")
+main = print (blinker)
