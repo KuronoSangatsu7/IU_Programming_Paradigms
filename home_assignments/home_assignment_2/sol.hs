@@ -141,17 +141,16 @@ shiftRightRepeated n line = shiftRightRepeated (n - 1) result
       Nothing -> line
       Just line -> line
 
--- A function to shift the focus on a given line by a given number of positions to the left (negative values) or right (positive values)
+-- A function to shift the focus on a given line by a given number of positions to the left (negative values) or to the right (positive values)
 shiftRepeated :: Line a -> Integer -> a -> Line a
-shiftRepeated line 0 element = line
-shiftRepeated line n element
+shiftRepeated line 0 _ = line
+shiftRepeated line n _
   | n > 0 = shiftRightRepeated n line
   | otherwise = shiftLeftRepeated (abs n) line
 
-
 -- A function which maps every cell in a line into a version of the original line where that cell is in focus. The new line of lines has the original line in focus
 lineShifts :: Line a -> Line (Line a)
-lineShifts line = combineLineWith (shiftRepeated line) (zipLines integers line) 
+lineShifts line = zipLinesWith (shiftRepeated line) integers line
 
 -- A function that applies Rule 30 to every element of a given line of cells
 applyRule30 :: Line Cell -> Line Cell
@@ -235,6 +234,11 @@ integerSpace = (Space (Line integerSpaceList integerSpaceAtom integerSpaceList))
     integerSpaceAtom = cutLine 5 integers
     integerSpaceList = take 2 (repeat integerSpaceAtom)
 
+integerSpaceMini = (Space (Line integerSpaceList integerSpaceAtom integerSpaceList))
+  where
+    integerSpaceAtom = cutLine 1 integers
+    integerSpaceList = take 2 (repeat integerSpaceAtom)
+
 -- 1.11 DUPLICATE
 
 -- #1.4 Conway’s Game of Life
@@ -291,7 +295,57 @@ aliveNeighbors space = sum (map (cellToBinary) (getMoore space))
 conwayRule :: Space Cell -> Cell
 conwayRule space = computeConwayRule (getSpaceFocus space) (aliveNeighbors space)
 
+-- 1.13
 
+pureShift :: (Line a -> Maybe (Line a)) -> Line a -> Line a
+pureShift f line = case f line of
+  Nothing -> line
+  Just result -> result
+
+shiftSpaceUp :: Space a -> Maybe (Space a)
+shiftSpaceUp (Space (Line [] y zs)) = Nothing
+shiftSpaceUp (Space line) = Just (Space (mapLine (pureShift shiftLeft) line))
+
+shiftSpaceDown :: Space a -> Maybe (Space a)
+shiftSpaceDown (Space (Line xs y [])) = Nothing
+shiftSpaceDown (Space line) = Just (Space (mapLine (pureShift shiftRight) line))
+
+shiftSpaceLeft :: Space a -> Maybe (Space a)
+shiftSpaceLeft (Space (Line as (Line [] y zs) cs)) = Nothing
+shiftSpaceLeft (Space (Line x line y)) = Just (Space (Line x (pureShift shiftLeft line) y))
+
+shiftSpaceRight :: Space a -> Maybe (Space a)
+shiftSpaceRight (Space (Line as (Line xs y []) cs)) = Nothing
+shiftSpaceRight (Space (Line x line y)) = Just (Space (Line x (pureShift shiftRight line) y))
+
+shiftSpaceLeftAll :: Space a -> [Space a]
+shiftSpaceLeftAll space = case shiftSpaceLeft space of
+  Nothing -> []
+  Just newSpace -> newSpace : shiftSpaceLeftAll newSpace
+
+shiftSpaceRightAll :: Space a -> [Space a]
+shiftSpaceRightAll space = case shiftSpaceRight space of
+  Nothing -> []
+  Just newSpace -> newSpace : shiftSpaceRightAll newSpace
+
+horizontalSpaceShifts :: Space a -> Line (Space a)
+horizontalSpaceShifts space = Line (shiftSpaceLeftAll space) space (shiftSpaceRightAll space)
+
+shiftSpaceUpAll :: Space a -> [Line (Space a)]
+shiftSpaceUpAll space = case shiftSpaceUp space of
+  Nothing -> [horizontalSpaceShifts space]
+  Just newSpace -> (horizontalSpaceShifts newSpace) : shiftSpaceUpAll newSpace
+
+shiftSpaceDownAll :: Space a -> [Line (Space a)]
+shiftSpaceDownAll space = case shiftSpaceDown space of
+  Nothing -> [horizontalSpaceShifts space]
+  Just newSpace -> (horizontalSpaceShifts newSpace) : shiftSpaceDownAll newSpace
+
+spaceShifts :: Space a -> Space (Space a)
+spaceShifts space = (Space (Line (shiftSpaceUpAll space) (horizontalSpaceShifts space) (shiftSpaceDownAll space)))
+
+applyConwayRule :: Space Cell -> Space Cell
+applyConwayRule space = mapSpace conwayRule (spaceShifts space)
 
 main :: IO()
-main = print (zipSpacesWith (*) integerSpace integerSpace)
+main = print ("hi")
