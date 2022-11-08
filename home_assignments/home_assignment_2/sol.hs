@@ -1,5 +1,7 @@
 import CodeWorld
 
+-- #1.1 Lines
+
 data Line a = Line [a] a [a]
   deriving (Show)
 
@@ -63,6 +65,8 @@ combineLineWith f (Line xs y zs) = Line (combineArrayWith f xs) (combineAtomWith
 -- A function that zips together two lines with a given combining function
 zipLinesWith :: (a -> b -> c) -> Line a -> Line b -> Line c
 zipLinesWith f firstLine secondLine = combineLineWith f (zipLines firstLine secondLine)
+
+-- #1.2 Rule 30
 
 -- 1.5
 
@@ -194,5 +198,50 @@ renderRule30 n line = renderRule30 (n - 1) newLine
   where
     newLine = applyRule30 line
 
+-- #1.3 Discrete Spaces
+
+data Space a = Space (Line (Line a))
+  deriving Show
+
+-- 1.9
+-- None
+
+-- 1.10
+
+-- A function that applies a given function to all elements in a Space to produce a new Space
+mapSpace :: (a -> b) -> Space a -> Space b
+mapSpace f (Space line) = Space (mapLine (mapLine f) line)
+
+-- A function that zips together 2 Spaces
+zipSpaces :: Space a -> Space b -> Space (a, b)
+zipSpaces (Space line1) (Space line2) = Space (zipLinesWith (zipLines) line1 line2)
+
+-- A function that applies a given combining function to a given Space which was a result of a previous zipSpaces operation
+combineSpaceWith :: (a -> b -> c) -> Space (a, b) -> Space c
+combineSpaceWith f (Space line) = Space (mapLine (combineLineWith f) line)
+
+-- A function that zips together two Spaces with a given combining function
+zipSpacesWith :: (a -> b -> c) -> Space a -> Space b -> Space c
+zipSpacesWith f firstSpace secondSpace = combineSpaceWith f (zipSpaces firstSpace secondSpace)
+
+-- An example space
+blinker = (Space (Line blinker' (Line [Alive, Dead] Alive [Alive, Dead]) blinker')) 
+  where
+    blinker' = replicate 2 (Line (replicate 2 Dead) Dead (replicate 2 Dead))
+
+-- Another example space
+integerSpace = (Space (Line integerSpaceList integerSpaceAtom integerSpaceList))
+  where
+    integerSpaceAtom = cutLine 5 integers
+    integerSpaceList = take 2 (repeat integerSpaceAtom)
+
+-- 1.11 DUPLICATE
+
+-- #1.4 Conway’s Game of Life
+
+-- 1.12
+
+
+
 main :: IO()
-main = drawingOf (renderRule30 16 (cutLine 15 sampleLine1))
+main = print (zipSpacesWith (*) integerSpace integerSpace)
