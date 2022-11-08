@@ -248,12 +248,17 @@ computeConwayRule _ 3 = Alive
 computeConwayRule _ _ = Dead
 
 -- A function that returns the focus of a given line of abstract items
-getFocus :: Line a -> a
-getFocus (Line xs y zs) = y
+getLineFocus :: Line Cell -> Cell
+getLineFocus (Line xs y zs) = y
+getLineFocus _ = Dead
 
 -- A function that returns the focus of a given space
 getSpaceFocus :: Space Cell -> Cell
-getSpaceFocus (Space (Line xs y zs)) = getFocus y
+getSpaceFocus (Space (Line xs y zs)) = getLineFocus y
+
+-- A function that returns the line in focus of a given space
+getSpaceLineInFocus :: Line (Line Cell) -> Line Cell
+getSpaceLineInFocus (Line xs y zs) = y
 
 -- A function that returns the first cell prior to the focus of a given line
 getPrevLineFocus :: Line Cell -> Cell
@@ -277,11 +282,11 @@ getNextSpaceFocus (Line xs y (z:zs)) = z
 
 -- A function that returns the focus of a given line and the 2 cells to its left and right
 getThreeCells :: Line Cell -> [Cell]
-getThreeCells line = [(getPrevLineFocus line)] ++ [(getFocus line)] ++ [(getNextLineFocus line)]
+getThreeCells line = [(getPrevLineFocus line)] ++ [(getLineFocus line)] ++ [(getNextLineFocus line)]
 
 -- A function that returns an array containing the Moore neighborhood of the cell in focus of a given space
 getMoore :: Space Cell -> [Cell]
-getMoore (Space line) = (getThreeCells (getPrevSpaceFocus line)) ++ [(getPrevLineFocus (getFocus line))] ++ [(getNextLineFocus (getFocus line))] ++ (getThreeCells (getNextSpaceFocus line))
+getMoore (Space line) = (getThreeCells (getPrevSpaceFocus line)) ++ [(getPrevLineFocus (getSpaceLineInFocus line))] ++ [(getNextLineFocus (getSpaceLineInFocus line))] ++ (getThreeCells (getNextSpaceFocus line))
 
 -- A function that returns the number of alive neighbors of the cell in focus of a given space
 aliveNeighbors :: Space Cell -> Integer
