@@ -169,7 +169,35 @@ renderList list offset = helper list offset 1
 renderLine :: Line Picture -> Picture
 renderLine (Line xs y zs) = renderList xs (-1) <> y <> renderList zs 1
 
--- For testing renderLine
+-- TODO: decide which implementation to use
+renderLeft :: [Picture] -> Picture
+renderLeft [] = blank
+renderLeft (x:xs) = x <> translated (-1) 0 (renderLeft xs)
+
+renderRight :: [Picture] -> Picture
+renderRight [] = blank
+renderRight (x:xs) = x <> translated 1 0 (renderRight xs)
+
+renderLine1 :: Line Picture -> Picture
+renderLine1 (Line xs y zs) = translated (-1) 0 (renderLeft xs) <> y <> translated 1 0 (renderRight zs)
+
+
+-- A function that translates an Alive Cell to a solid rectangle and a Dead Cell to a hollow one
+cellToPicture :: Cell -> Picture
+cellToPicture Alive = solidRectangle 1 1
+cellToPicture _ = rectangle 1 1
+
+-- A function that renders the fist N steps of Rule 30 applied to a given starting line
+renderRule30 :: Int -> Line Cell -> Picture
+renderRule30 0 line = renderLine (mapLine cellToPicture line)
+renderRule30 n line = renderRule30 (n - 1) newLine
+  where
+    newLine = applyRule30 line
+
+-- Sample lines
+sampleLine1 :: Line Cell
+sampleLine1 = Line (repeat Dead) Alive (repeat Dead)
+
 sampleLine :: Line Picture
 sampleLine = Line [a,b,c,d,e,f,g] c [g,d,b,c,a,f]
   where
@@ -180,22 +208,6 @@ sampleLine = Line [a,b,c,d,e,f,g] c [g,d,b,c,a,f]
     e = colored purple (solidCircle 0.5)
     f = colored brown (solidCircle 0.5)
     g = colored pink (solidCircle 0.5)
-
--- A function that translates an Alive Cell to a solid rectangle and a Dead Cell to a hollow one
-cellToPicture :: Cell -> Picture
-cellToPicture Alive = solidRectangle 1 1
-cellToPicture _ = rectangle 1 1
-
--- For testing
-sampleLine1 :: Line Cell
-sampleLine1 = Line (repeat Dead) Alive (repeat Dead)
-
--- A function that renders the fist N steps of Rule 30 applied to a given starting line
-renderRule30 :: Int -> Line Cell -> Picture
-renderRule30 0 line = renderLine (mapLine cellToPicture line)
-renderRule30 n line = renderRule30 (n - 1) newLine
-  where
-    newLine = applyRule30 line
 
 -- #1.3 Discrete Spaces
 
@@ -222,22 +234,6 @@ combineSpaceWith f (Space line) = Space (mapLine (combineLineWith f) line)
 -- A function that zips together two Spaces with a given combining function
 zipSpacesWith :: (a -> b -> c) -> Space a -> Space b -> Space c
 zipSpacesWith f firstSpace secondSpace = combineSpaceWith f (zipSpaces firstSpace secondSpace)
-
--- An example space
-blinker = (Space (Line blinker' (Line [Alive, Dead] Alive [Alive, Dead]) blinker')) 
-  where
-    blinker' = replicate 2 (Line (replicate 2 Dead) Dead (replicate 2 Dead))
-
--- Another example space
-integerSpace = (Space (Line integerSpaceList integerSpaceAtom integerSpaceList))
-  where
-    integerSpaceAtom = cutLine 5 integers
-    integerSpaceList = take 2 (repeat integerSpaceAtom)
-
-integerSpaceMini = (Space (Line integerSpaceList integerSpaceAtom integerSpaceList))
-  where
-    integerSpaceAtom = cutLine 1 integers
-    integerSpaceList = take 2 (repeat integerSpaceAtom)
 
 -- 1.11 DUPLICATE
 
@@ -297,29 +293,27 @@ conwayRule space = computeConwayRule (getSpaceFocus space) (aliveNeighbors space
 
 -- 1.13
 
+-- TODO: Doc
 pureShift :: (Line a -> Maybe (Line a)) -> Line a -> Line a
 pureShift f line = case f line of
   Nothing -> line
   Just result -> result
--- Up
+
+shiftSpaceUp :: Space a -> Maybe (Space a)
+shiftSpaceUp (Space (Line [] y zs)) = Nothing
+shiftSpaceUp (Space line) = Just (Space (pureShift shiftLeft line))
+
+shiftSpaceDown :: Space a -> Maybe (Space a)
+shiftSpaceDown (Space (Line xs y [])) = Nothing
+shiftSpaceDown (Space line) = Just (Space (pureShift shiftRight line))
+
 shiftSpaceLeft :: Space a -> Maybe (Space a)
-shiftSpaceLeft (Space (Line [] y zs)) = Nothing
+shiftSpaceLeft (Space (Line _ (Line [] y zs) _)) = Nothing
 shiftSpaceLeft (Space line) = Just (Space (mapLine (pureShift shiftLeft) line))
 
---Down
 shiftSpaceRight :: Space a -> Maybe (Space a)
-shiftSpaceRight (Space (Line xs y [])) = Nothing
+shiftSpaceRight (Space (Line _ (Line xs y []) _)) = Nothing
 shiftSpaceRight (Space line) = Just (Space (mapLine (pureShift shiftRight) line))
-
--- Left
-shiftSpaceUp :: Space a -> Maybe (Space a)
-shiftSpaceUp (Space (Line as (Line [] y zs) cs)) = Nothing
-shiftSpaceUp (Space (Line x line y)) = Just (Space (Line x (pureShift shiftLeft line) y))
-
--- Right
-shiftSpaceDown :: Space a -> Maybe (Space a)
-shiftSpaceDown (Space (Line as (Line xs y []) cs)) = Nothing
-shiftSpaceDown (Space (Line x line y)) = Just (Space (Line x (pureShift shiftRight line) y))
 
 shiftSpaceLeftAll :: Space a -> [Space a]
 shiftSpaceLeftAll space = case shiftSpaceLeft space of
@@ -335,20 +329,124 @@ horizontalSpaceShifts :: Space a -> Line (Space a)
 horizontalSpaceShifts space = Line (shiftSpaceLeftAll space) space (shiftSpaceRightAll space)
 
 shiftSpaceUpAll :: Space a -> [Line (Space a)]
-shiftSpaceUpAll space = case shiftSpaceUp space of
-  Nothing -> [horizontalSpaceShifts space]
-  Just newSpace -> (horizontalSpaceShifts newSpace) : shiftSpaceUpAll newSpace
+shiftSpaceUpAll space = case (shiftSpaceUp space) of
+  Nothing -> [(horizontalSpaceShifts space)]
+  Just newSpace -> (horizontalSpaceShifts space) : shiftSpaceUpAll newSpace
 
 shiftSpaceDownAll :: Space a -> [Line (Space a)]
-shiftSpaceDownAll space = case shiftSpaceDown space of
+shiftSpaceDownAll space = case (shiftSpaceDown space) of
   Nothing -> [horizontalSpaceShifts space]
-  Just newSpace -> (horizontalSpaceShifts newSpace) : shiftSpaceDownAll newSpace
+  Just newSpace -> (horizontalSpaceShifts space) : shiftSpaceDownAll newSpace
 
 spaceShifts :: Space a -> Space (Space a)
-spaceShifts space = (Space (Line (shiftSpaceUpAll space) (horizontalSpaceShifts space) (shiftSpaceDownAll space)))
+spaceShifts space = (Space (Line (shiftSpaceUpAll (iteratedUp)) (horizontalSpaceShifts space) (shiftSpaceDownAll (iteratedDown))))
+  where
+    iteratedUp = case shiftSpaceUp space of
+      Nothing -> space
+      Just newSpace -> newSpace
+      
+    iteratedDown = case shiftSpaceDown space of
+      Nothing -> space
+      Just newSpace -> newSpace
 
 applyConwayRule :: Space Cell -> Space Cell
 applyConwayRule space = mapSpace conwayRule (spaceShifts space)
 
+-- 1.14
+
+renderAbove :: [Line Picture] -> Picture
+renderAbove [] = blank
+renderAbove (x:xs) = renderLine x <> translated 0 (-1) (renderAbove xs)
+
+renderBelow :: [Line Picture] -> Picture
+renderBelow [] = blank
+renderBelow (x:xs) = renderLine x <> translated 0 1 (renderBelow xs)
+
+renderSpace :: Space Picture -> Picture
+renderSpace (Space (Line xs y zs)) = translated 0 (-1) (renderAbove xs) <> renderLine y <> translated 0 1 (renderBelow zs)
+
+visualize :: (Double, Space Cell) -> Picture
+visualize (_, space) = renderSpace (mapSpace cellToPicture space)
+
+eventHandler :: Event -> (Double, Space Cell) -> (Double, Space Cell)
+eventHandler (TimePassing delta) (time, space)
+      | time >= 1 = (0, (applyConwayRule space))
+      |  otherwise = (time + delta, space)
+eventHandler _ ts = ts
+
+animateConway :: Space Cell -> IO ()
+animateConway space = activityOf initialSpace eventHandler visualize
+  where
+    initialSpace = (0, space)
+
+-- Some sample spaces (some were written by classmates)
+
+blinker = (Space (Line blinker' (Line [Alive, Dead, Dead] Alive [Alive, Dead, Dead]) blinker')) 
+  where
+    blinker' = replicate 3 (Line (replicate 3 Dead) Dead (replicate 3 Dead))
+
+integerSpace = (Space (Line integerSpaceList integerSpaceAtom integerSpaceList))
+  where
+    integerSpaceAtom = cutLine 5 integers
+    integerSpaceList = take 2 (repeat integerSpaceAtom)
+
+integerSpaceMini = (Space (Line integerSpaceList integerSpaceAtom integerSpaceList))
+  where
+    integerSpaceAtom = cutLine 1 integers
+    integerSpaceList = take 2 (repeat integerSpaceAtom)
+
+pentaDecathlon :: Space Cell 
+pentaDecathlon = Space(
+  Line 
+      [
+          Line [Alive, Dead, Dead, Dead, Dead] Alive [Alive, Dead, Dead, Dead, Dead],
+          Line [Alive, Dead, Dead, Dead, Dead] Alive [Alive, Dead, Dead, Dead, Dead],
+          Line [Alive, Dead, Dead, Dead, Dead] Dead  [Alive, Dead, Dead, Dead, Dead],
+          Line [Alive, Dead, Dead, Dead, Dead] Alive [Alive, Dead, Dead, Dead, Dead],
+          Line [Dead, Dead, Dead, Dead, Dead] Dead [Dead, Dead, Dead, Dead, Dead],
+          Line [Dead, Dead, Dead, Dead, Dead] Dead [Dead, Dead, Dead, Dead, Dead],
+          Line [Dead, Dead, Dead, Dead, Dead] Dead [Dead, Dead, Dead, Dead, Dead],
+          Line [Dead, Dead, Dead, Dead, Dead] Dead [Dead, Dead, Dead, Dead, Dead],
+          Line [Dead, Dead, Dead, Dead, Dead] Dead [Dead, Dead, Dead, Dead, Dead]
+      ]
+      (   Line [Alive, Dead, Dead, Dead, Dead] Alive [Alive, Dead, Dead, Dead, Dead])
+      [
+          Line [Alive, Dead, Dead, Dead, Dead] Alive [Alive, Dead, Dead, Dead, Dead],
+          Line [Alive, Dead, Dead, Dead, Dead] Dead  [Alive, Dead, Dead, Dead, Dead],
+          Line [Alive, Dead, Dead, Dead, Dead] Alive [Alive, Dead, Dead, Dead, Dead],
+          Line [Dead, Dead, Dead, Dead, Dead] Dead [Dead, Dead, Dead, Dead, Dead],
+          Line [Dead, Dead, Dead, Dead, Dead] Dead [Dead, Dead, Dead, Dead, Dead],
+          Line [Dead, Dead, Dead, Dead, Dead] Dead [Dead, Dead, Dead, Dead, Dead],
+          Line [Dead, Dead, Dead, Dead, Dead] Dead [Dead, Dead, Dead, Dead, Dead],
+          Line [Dead, Dead, Dead, Dead, Dead] Dead [Dead, Dead, Dead, Dead, Dead]
+      ])
+
+glider :: Space Cell
+glider =  Space(
+    Line 
+        [
+            Line [Dead, Dead, Dead, Dead, Dead] Dead [Dead, Dead, Dead, Dead, Dead],
+            Line [Dead, Dead, Dead, Dead, Dead] Dead [Dead, Dead, Dead, Dead, Dead],
+            Line [Dead, Dead, Dead, Dead, Dead] Dead [Dead, Dead, Dead, Dead, Dead],
+            Line [Dead, Dead, Dead, Dead, Dead] Dead [Dead, Dead, Dead, Dead, Dead],
+            Line [Dead, Dead, Dead, Dead, Dead] Dead [Dead, Dead, Dead, Dead, Dead],
+            Line [Dead, Dead, Dead, Dead, Dead] Dead [Dead, Dead, Dead, Dead, Dead],
+            Line [Dead, Dead, Dead, Dead, Dead] Dead [Dead, Dead, Dead, Dead, Dead],
+            Line [Dead, Dead, Dead, Dead, Dead] Dead [Dead, Dead, Dead, Dead, Dead],
+            Line [Dead, Dead, Dead, Dead, Dead] Dead [Dead, Dead, Dead, Dead, Dead]
+        ]
+        (   Line [Alive, Dead, Dead, Dead, Dead] Alive [Alive, Dead, Dead, Dead, Dead])
+        [
+            Line [Dead, Dead, Dead, Dead, Dead] Dead [Alive, Dead, Dead, Dead, Dead],
+            Line [Dead, Dead, Dead, Dead, Dead] Alive [Dead, Dead, Dead, Dead, Dead],
+            Line [Dead, Dead, Dead, Dead, Dead] Dead [Dead, Dead, Dead, Dead, Dead],
+            Line [Dead, Dead, Dead, Dead, Dead] Dead [Dead, Dead, Dead, Dead, Dead],
+            Line [Dead, Dead, Dead, Dead, Dead] Dead [Dead, Dead, Dead, Dead, Dead],
+            Line [Dead, Dead, Dead, Dead, Dead] Dead [Dead, Dead, Dead, Dead, Dead],
+            Line [Dead, Dead, Dead, Dead, Dead] Dead [Dead, Dead, Dead, Dead, Dead],
+            Line [Dead, Dead, Dead, Dead, Dead] Dead [Dead, Dead, Dead, Dead, Dead]
+        ])
+
 main :: IO()
-main = print (blinker)
+main = do
+animateConway pentaDecathlon
