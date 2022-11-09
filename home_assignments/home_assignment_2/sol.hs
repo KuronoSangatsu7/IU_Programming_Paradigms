@@ -93,7 +93,6 @@ _xor :: Integer -> Integer -> Integer
 _xor 0 x = x
 _xor 1 x = _not x
 
-
 -- A function that computes the next state of a cell given the current state of the cell and both its neighbours
 computeRule30 :: Cell -> Cell -> Cell -> Cell
 computeRule30 x y z = result
@@ -158,29 +157,19 @@ applyRule30 line = mapLine rule30 (lineShifts line)
 
 -- 1.8
 
--- A function that generates a picture given a list of pictures. The function starts rendering with offset 0 and increments it by a given value at every element
-renderList :: [Picture] -> Double -> Picture
-renderList list offset = helper list offset 1
-  where
-    helper [] _ _ = blank
-    helper (x:xs) offset mul = (translated (offset * mul) 0 x) <> helper xs offset (mul + 1)
-
--- A function that renders a line of 1x1 Pictures
-renderLine :: Line Picture -> Picture
-renderLine (Line xs y zs) = renderList xs (-1) <> y <> renderList zs 1
-
--- TODO: decide which implementation to use
+-- A function which renders an array of Pictures shifting each consecutive Picture one position to the left
 renderLeft :: [Picture] -> Picture
 renderLeft [] = blank
 renderLeft (x:xs) = x <> translated (-1) 0 (renderLeft xs)
 
+-- A function which renders an array of Pictures shifting each consecutive Picture one position to the right
 renderRight :: [Picture] -> Picture
 renderRight [] = blank
 renderRight (x:xs) = x <> translated 1 0 (renderRight xs)
 
-renderLine1 :: Line Picture -> Picture
-renderLine1 (Line xs y zs) = translated (-1) 0 (renderLeft xs) <> y <> translated 1 0 (renderRight zs)
-
+-- A function that renders a Line of Pictures with proper translations
+renderLine :: Line Picture -> Picture
+renderLine (Line xs y zs) = translated (-1) 0 (renderLeft xs) <> y <> translated 1 0 (renderRight zs)
 
 -- A function that translates an Alive Cell to a solid rectangle and a Dead Cell to a hollow one
 cellToPicture :: Cell -> Picture
@@ -212,7 +201,6 @@ sampleLine = Line [a,b,c,d,e,f,g] c [g,d,b,c,a,f]
 -- #1.3 Discrete Spaces
 
 data Space a = Space (Line (Line a))
-  deriving Show
 
 -- 1.9
 -- None
@@ -293,51 +281,64 @@ conwayRule space = computeConwayRule (getSpaceFocus space) (aliveNeighbors space
 
 -- 1.13
 
--- TODO: Doc
+-- A function that performs a shift operation on a line and returns a new, shifted line if the operation is a success and the original otherwise
 pureShift :: (Line a -> Maybe (Line a)) -> Line a -> Line a
 pureShift f line = case f line of
   Nothing -> line
   Just result -> result
 
+-- A function that takes a space and shift its focus up by one position
 shiftSpaceUp :: Space a -> Maybe (Space a)
 shiftSpaceUp (Space (Line [] y zs)) = Nothing
 shiftSpaceUp (Space line) = Just (Space (pureShift shiftLeft line))
 
+-- A function that takes a space and shift its focus down by one position
 shiftSpaceDown :: Space a -> Maybe (Space a)
 shiftSpaceDown (Space (Line xs y [])) = Nothing
 shiftSpaceDown (Space line) = Just (Space (pureShift shiftRight line))
 
+-- A function that takes a space and shift its focus left by one position
 shiftSpaceLeft :: Space a -> Maybe (Space a)
 shiftSpaceLeft (Space (Line _ (Line [] y zs) _)) = Nothing
 shiftSpaceLeft (Space line) = Just (Space (mapLine (pureShift shiftLeft) line))
 
+-- A function that takes a space and shift its focus right by one position
 shiftSpaceRight :: Space a -> Maybe (Space a)
 shiftSpaceRight (Space (Line _ (Line xs y []) _)) = Nothing
 shiftSpaceRight (Space line) = Just (Space (mapLine (pureShift shiftRight) line))
 
+-- A function that takes a space and returns a list of all possible left shifts of that space
 shiftSpaceLeftAll :: Space a -> [Space a]
 shiftSpaceLeftAll space = case shiftSpaceLeft space of
   Nothing -> []
   Just newSpace -> newSpace : shiftSpaceLeftAll newSpace
 
+-- A function that takes a space and returns a list of all possible right shifts of that space
 shiftSpaceRightAll :: Space a -> [Space a]
 shiftSpaceRightAll space = case shiftSpaceRight space of
   Nothing -> []
   Just newSpace -> newSpace : shiftSpaceRightAll newSpace
 
+-- A function that takes a space and returns a line of all possible horizontal shifts of that space, with the original space in focus
 horizontalSpaceShifts :: Space a -> Line (Space a)
 horizontalSpaceShifts space = Line (shiftSpaceLeftAll space) space (shiftSpaceRightAll space)
 
+-- A function that takes a space and returns a list of lines representing all possible upwards shifts of that space
+-- Each element of the line also contains all possible horizontal shifts of the original space
 shiftSpaceUpAll :: Space a -> [Line (Space a)]
 shiftSpaceUpAll space = case (shiftSpaceUp space) of
   Nothing -> [(horizontalSpaceShifts space)]
   Just newSpace -> (horizontalSpaceShifts space) : shiftSpaceUpAll newSpace
 
+-- A function that takes a space and returns a list of lines representing all possible downwards shifts of that space
+-- Each element of the line also contains all possible horizontal shifts of the original space
 shiftSpaceDownAll :: Space a -> [Line (Space a)]
 shiftSpaceDownAll space = case (shiftSpaceDown space) of
   Nothing -> [horizontalSpaceShifts space]
   Just newSpace -> (horizontalSpaceShifts space) : shiftSpaceDownAll newSpace
 
+-- A function that takes a space and converts each cell of that space into a version of the original space with focus shifted to that cell 
+-- The new space (of spaces) has the original space in focus
 spaceShifts :: Space a -> Space (Space a)
 spaceShifts space = (Space (Line (shiftSpaceUpAll (iteratedUp)) (horizontalSpaceShifts space) (shiftSpaceDownAll (iteratedDown))))
   where
@@ -349,31 +350,38 @@ spaceShifts space = (Space (Line (shiftSpaceUpAll (iteratedUp)) (horizontalSpace
       Nothing -> space
       Just newSpace -> newSpace
 
+-- A function that applies Conway's Rule to every Space in a Space of Spaces
 applyConwayRule :: Space Cell -> Space Cell
 applyConwayRule space = mapSpace conwayRule (spaceShifts space)
 
 -- 1.14
 
+-- A function which renders an array of Lines of Pictures shifting each consecutive Line one position upwards
 renderAbove :: [Line Picture] -> Picture
 renderAbove [] = blank
 renderAbove (x:xs) = renderLine x <> translated 0 (-1) (renderAbove xs)
 
+-- A function which renders an array of Lines of Pictures shifting each consecutive Line one position downwards
 renderBelow :: [Line Picture] -> Picture
 renderBelow [] = blank
 renderBelow (x:xs) = renderLine x <> translated 0 1 (renderBelow xs)
 
+-- A function that renders a space of 1x1 pictures
 renderSpace :: Space Picture -> Picture
 renderSpace (Space (Line xs y zs)) = translated 0 (-1) (renderAbove xs) <> renderLine y <> translated 0 1 (renderBelow zs)
 
+-- A visualizer function to be used by activityOf. It turns a state of (time, space) pair into a picture to be displayed
 visualize :: (Double, Space Cell) -> Picture
 visualize (_, space) = renderSpace (mapSpace cellToPicture space)
 
+-- An even handling function to be used by activityOf. It updates the state of (time, space) pair given an event
 eventHandler :: Event -> (Double, Space Cell) -> (Double, Space Cell)
 eventHandler (TimePassing delta) (time, space)
       | time >= 1 = (0, (applyConwayRule space))
       |  otherwise = (time + delta, space)
-eventHandler _ ts = ts
+eventHandler _ world = world
 
+-- A function to Animate Conway's Game of Life starting with a given space and updating it every second
 animateConway :: Space Cell -> IO ()
 animateConway space = activityOf initialSpace eventHandler visualize
   where
