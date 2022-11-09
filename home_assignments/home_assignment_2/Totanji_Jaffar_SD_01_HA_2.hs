@@ -1,5 +1,7 @@
 import CodeWorld
 
+-- Author: Jaffar Totanji - SD - 01
+
 -- #1.1 Lines
 
 data Line a = Line [a] a [a]
@@ -93,6 +95,7 @@ _xor :: Integer -> Integer -> Integer
 _xor 0 x = x
 _xor 1 x = _not x
 
+
 -- A function that computes the next state of a cell given the current state of the cell and both its neighbours
 computeRule30 :: Cell -> Cell -> Cell -> Cell
 computeRule30 x y z = result
@@ -170,6 +173,7 @@ renderRight (x:xs) = x <> translated 1 0 (renderRight xs)
 -- A function that renders a Line of Pictures with proper translations
 renderLine :: Line Picture -> Picture
 renderLine (Line xs y zs) = translated (-1) 0 (renderLeft xs) <> y <> translated 1 0 (renderRight zs)
+
 
 -- A function that translates an Alive Cell to a solid rectangle and a Dead Cell to a hollow one
 cellToPicture :: Cell -> Picture
